@@ -1,22 +1,60 @@
 # ChronoCue App
 
-Building a timing application
+A fullscreen countdown timer with agenda mode for live events.
 
+---
 
+## Development Setup
 
+The project is now built with a proper dev stack reverse-engineered from the original Perplexity-generated bundle.
 
+**Tech stack:** React 18 · TypeScript · Vite · Tailwind CSS · Sass (SCSS)
 
-\##Feature Build Check list
+**Source lives in `src/`. The `live/` folder is the build output — do not edit it directly.**
 
-\[] Agenda functionality - Fix quick add button so it works
+```
+npm install       # first time setup
+npm run dev       # dev server with hot reload (http://localhost:5173)
+npm run build     # type-check + build → live/
+npm run preview   # preview the production build locally
+npm run typecheck # type-check only, no build
+```
 
-\[] Agenda - Each Agenda item needs to be a timer instance with these settings (1:Timer end blink on/off   2: End Noise on/off   3: End Noise selection   4:Reminder Build selections)
+### Project structure
 
-\[] Timer - Add low time reminder functionality (1min, 2min, 3min, 5min, 10min, half way) (Add noise option for each reminder) (Add visual option for each reminder)
+```
+src/
+├── types/          # TypeScript interfaces
+├── utils/          # time helpers, audio engine
+├── hooks/          # useTimer, useSettings
+├── components/     # all UI components
+├── styles/         # Sass variables, custom classes, Tailwind entry
+├── App.tsx         # main component
+└── main.tsx        # React root
+live/               # production build output (served by server.cjs)
+```
 
-\[] Agenda - Excel import
+---
 
-\[] Timer - End Noise, add ability to upload sound found to have a custom sound play
+## Feature To-Do
 
-\[] Timer - Sound options drop down
+### Bug
+- [ ] **Font color setting doesn't apply to UI button text**
+  The `fontColor` setting currently only colours the timer digits. Buttons use hardcoded Tailwind teal/white classes. Decision needed: should a separate "UI accent colour" control exist, or should `fontColor` drive everything? Recommend adding a distinct `accentColor` setting rather than overloading `fontColor`.
 
+### Architecture
+- [ ] **Simple timer and Agenda timer should be independent**
+  Both modes currently share a single `useTimer` instance — switching modes mid-count carries the state across. Fix: instantiate two `useTimer` hooks (`simpleTimer`, `agendaTimer`) and route each mode to its own. State resets when you switch modes, and each can run simultaneously in the background.
+
+### Agenda features
+- [ ] **Per-agenda-item settings**
+  Each agenda item should carry its own toggles: overtime display on/off, clock blink/fade on/off, gong on/off, gong sound selection. Extend the `AgendaItem` type and surface controls in the agenda editor. Global settings become defaults; per-item settings override them.
+
+- [ ] **Total agenda time tracking with over/under display**
+  Track the scheduled total duration (sum of all item durations) vs. actual elapsed time. Show a running delta during the agenda (e.g. "+0:32 over") and a summary when the agenda ends. Also track per-item over/under for a post-run breakdown.
+
+### Previously planned
+- [ ] Fix quick add button in Agenda mode
+- [ ] Low-time reminders (1 min, 2 min, 5 min, half-way) with sound and visual options
+- [ ] Excel import for agenda items
+- [ ] Sound options dropdown for end noise

@@ -1,0 +1,161 @@
+import { useState } from 'react'
+import { X, ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
+import type { AgendaItem } from '../types'
+import { parseSeconds } from '../utils/time'
+
+interface Props {
+  items: AgendaItem[]
+  onUpdate: (items: AgendaItem[]) => void
+  onClose: () => void
+}
+
+function secondsToInputs(total: number) {
+  const { hours, minutes, secs } = parseSeconds(total)
+  return { h: hours > 0 ? String(hours) : '', m: String(minutes), s: String(secs) }
+}
+
+function inputsToSeconds(h: string, m: string, s: string): number {
+  return (parseInt(h) || 0) * 3600 + (parseInt(m) || 0) * 60 + (parseInt(s) || 0)
+}
+
+export function AgendaEditor({ items, onUpdate, onClose }: Props) {
+  const [draft, setDraft] = useState<AgendaItem[]>(items)
+
+  const addItem = () => {
+    setDraft(prev => [...prev, { id: crypto.randomUUID(), name: '', durationSeconds: 300 }])
+  }
+
+  const removeItem = (id: string) => {
+    setDraft(prev => prev.filter(item => item.id !== id))
+  }
+
+  const updateItem = (id: string, field: keyof AgendaItem, value: string | number) => {
+    setDraft(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item))
+  }
+
+  const moveItem = (index: number, dir: -1 | 1) => {
+    const target = index + dir
+    if (target < 0 || target >= draft.length) return
+    const next = [...draft]
+    ;[next[index], next[target]] = [next[target], next[index]]
+    setDraft(next)
+  }
+
+  const save = () => {
+    onUpdate(draft.filter(item => item.name.trim().length > 0 && item.durationSeconds > 0))
+    onClose()
+  }
+
+  const totalSeconds = draft.reduce((sum, item) => sum + item.durationSeconds, 0)
+  const totalMinutes = Math.ceil(totalSeconds / 60)
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+      data-testid="agenda-editor"
+    >
+      <div className="w-full max-w-lg bg-[#1a1a1a] rounded-t-2xl sm:rounded-2xl p-6 max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-white text-lg font-semibold">Edit Agenda</h2>
+          <button
+            className="touch-button p-2 rounded-lg hover:bg-white/10 text-white/60 transition-colors"
+            onClick={onClose}
+            data-testid="button-close-agenda"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 mb-4">
+          {draft.map((item, i) => {
+            const { h, m, s } = secondsToInputs(item.durationSeconds)
+            return (
+              <div key={item.id} className="flex items-center gap-2 bg-white/5 rounded-xl p-3">
+                <div className="flex flex-col gap-1">
+                  <button
+                    className="p-1 hover:bg-white/10 rounded transition-colors text-white/40 disabled:opacity-20"
+                    onClick={() => moveItem(i, -1)}
+                    disabled={i === 0}
+                  >
+                    <ChevronUp size={14} />
+                  </button>
+                  <button
+                    className="p-1 hover:bg-white/10 rounded transition-colors text-white/40 disabled:opacity-20"
+                    onClick={() => moveItem(i, 1)}
+                    disabled={i === draft.length - 1}
+                  >
+                    <ChevronDown size={14} />
+                  </button>
+                </div>
+
+                <div className="flex-1 min-w-0 space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Item name"
+                    value={item.name}
+                    onChange={e => updateItem(item.id, 'name', e.target.value)}
+                    className="w-full px-3 py-1.5 rounded-lg bg-white/10 border border-white/15 text-white text-sm placeholder:text-white/30 outline-none focus:ring-1 focus:ring-teal-500/50"
+                  />
+                  <div className="flex items-center gap-1.5">
+                    {[
+                      { val: h, ph: 'Hr',  max: 99,  key: 'h' },
+                      { val: m, ph: 'Min', max: 59,  key: 'm' },
+                      { val: s, ph: 'Sec', max: 59,  key: 's' },
+                    ].map(({ val, ph, max, key }, idx) => (
+                      <span key={key} className="flex items-center gap-1">
+                        {idx > 0 && <span className="text-white/30 text-xs">:</span>}
+                        <input
+                          type="number"
+                          placeholder={ph}
+                          min={0}
+                          max={max}
+                          value={val}
+                          onChange={e => {
+                            const vals = { h, m, s, [key]: e.target.value }
+                            updateItem(item.id, 'durationSeconds', inputsToSeconds(vals.h, vals.m, vals.s))
+                          }}
+                          className="w-14 px-2 py-1.5 rounded-lg bg-white/10 border border-white/15 text-white text-xs text-center placeholder:text-white/30 outline-none focus:ring-1 focus:ring-teal-500/50"
+                        />
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  className="p-2 rounded-lg hover:bg-red-500/20 text-white/30 hover:text-red-400 transition-colors shrink-0"
+                  onClick={() => removeItem(item.id)}
+                  data-testid={`button-remove-item-${item.id}`}
+                >
+                  <Trash2 size={15} />
+                </button>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="flex items-center justify-between gap-3 pt-2 border-t border-white/10">
+          <div className="flex items-center gap-3">
+            <button
+              className="touch-button flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors"
+              onClick={addItem}
+              data-testid="button-add-agenda-item"
+            >
+              + Add Item
+            </button>
+            {draft.length > 0 && (
+              <span className="text-white/30 text-xs">{totalMinutes} min total</span>
+            )}
+          </div>
+          <button
+            className="touch-button px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-sm transition-colors"
+            onClick={save}
+            data-testid="button-save-agenda"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

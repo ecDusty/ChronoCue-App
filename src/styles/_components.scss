@@ -1,0 +1,51 @@
+@use 'variables' as *;
+
+// Touch-optimised button — removes 300ms delay on mobile
+.touch-button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+// Smooth background color/image transitions
+.timer-bg-transition {
+  transition: background-color 0.4s ease, background-image 0.4s ease;
+}
+
+// Custom slim scrollbar for panels
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+  }
+}
+
+// Keyframe animations (also registered in tailwind.config.ts)
+@keyframes fadePulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.15; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-pulse {
+  animation: fadePulse 2s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}

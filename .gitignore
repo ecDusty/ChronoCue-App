@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.local
+
+# Vite
+.vite/
+
+# OS
+.DS_Store
+Thumbs.db
