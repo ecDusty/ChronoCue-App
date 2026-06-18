@@ -11,6 +11,7 @@ import { TimeEditorModal } from './components/TimeEditorModal'
 import { AgendaProgress } from './components/AgendaProgress'
 import { AgendaEditor } from './components/AgendaEditor'
 import { SettingsPanel } from './components/SettingsPanel'
+import { ModeSwitchModal } from './components/ModeSwitchModal'
 
 import type { AgendaItem, TimerMode } from './types'
 
@@ -19,7 +20,8 @@ interface SegmentClickState {
 }
 
 export function App() {
-  const { remaining, totalSeconds, status, start, pause, reset, setTime, addTime, overtimeSeconds } = useTimer()
+  const simpleTimer = useTimer()
+  const agendaTimer = useTimer()
   const { settings, updateSetting, setBgImage, setCustomGong } = useSettings()
 
   const [mode, setMode] = useState<TimerMode>('simple')
@@ -28,9 +30,21 @@ export function App() {
   const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([])
   const [agendaIndex, setAgendaIndex] = useState(0)
   const [timeEditorState, setTimeEditorState] = useState<SegmentClickState | null>(null)
+  const [pendingMode, setPendingMode] = useState<TimerMode | null>(null)
+  const [suppressSwitchWarning, setSuppressSwitchWarning] = useState(false)
+
+  // Active timer routed to the UI; the other keeps its own independent state.
+  const timer = mode === 'simple' ? simpleTimer : agendaTimer
+  const { remaining, totalSeconds, status, start, pause, reset, setTime, addTime, overtimeSeconds } = timer
 
   const audioUnlocked = useRef(false)
-  const endHandled = useRef(false)
+  const simpleEndHandled = useRef(false)
+  const agendaEndHandled = useRef(false)
+  // Timers paused because their mode was switched away from should resume on return.
+  const autoResume = useRef<Record<TimerMode, boolean>>({ simple: false, agenda: false })
+  // Mirror of `mode` for use inside delayed callbacks without stale closures.
+  const modeRef = useRef(mode)
+  modeRef.current = mode
 
   const ensureAudioUnlocked = useCallback(() => {
     if (!audioUnlocked.current) {
@@ -39,43 +53,81 @@ export function App() {
     }
   }, [])
 
-  // Handle end-of-timer: play gong + advance agenda
-  useEffect(() => {
-    if (status !== 'ended' || endHandled.current) return
-    endHandled.current = true
-
-    if (settings.playGong) {
-      if (settings.gongSource === 'custom' && settings.customGongDataUrl) {
-        playCustomSound(settings.customGongDataUrl)
-      } else {
-        playDefaultGong()
-      }
+  const playEndGong = useCallback(() => {
+    if (!settings.playGong) return
+    if (settings.gongSource === 'custom' && settings.customGongDataUrl) {
+      playCustomSound(settings.customGongDataUrl)
+    } else {
+      playDefaultGong()
     }
+  }, [settings.playGong, settings.gongSource, settings.customGongDataUrl])
 
-    if (mode === 'agenda' && agendaIndex < agendaItems.length - 1) {
+  // Simple timer end: play gong. (No agenda advancement.)
+  useEffect(() => {
+    if (simpleTimer.status === 'running') simpleEndHandled.current = false
+    if (simpleTimer.status === 'ended' && !simpleEndHandled.current) {
+      simpleEndHandled.current = true
+      playEndGong()
+    }
+  }, [simpleTimer.status, playEndGong])
+
+  // Agenda timer end: play gong + advance to the next item after a short gap.
+  useEffect(() => {
+    if (agendaTimer.status === 'running') agendaEndHandled.current = false
+    if (agendaTimer.status !== 'ended' || agendaEndHandled.current) return
+    agendaEndHandled.current = true
+    playEndGong()
+
+    if (agendaIndex < agendaItems.length - 1) {
       const t = setTimeout(() => {
         const nextIndex = agendaIndex + 1
         setAgendaIndex(nextIndex)
-        setTime(agendaItems[nextIndex].durationSeconds)
-        endHandled.current = false
-        setTimeout(() => start(), 100)
+        agendaTimer.setTime(agendaItems[nextIndex].durationSeconds)
+        agendaEndHandled.current = false
+        // If the user switched away during the gap, leave the next item paused
+        // and let it resume when they return to agenda mode.
+        if (modeRef.current === 'agenda') {
+          setTimeout(() => agendaTimer.start(), 100)
+        } else {
+          autoResume.current.agenda = true
+        }
       }, 2000)
       return () => clearTimeout(t)
     }
-  }, [status, settings, mode, agendaIndex, agendaItems, setTime, start])
-
-  // Clear end-handled flag when timer starts running again
-  useEffect(() => {
-    if (status === 'running') endHandled.current = false
-  }, [status])
+  }, [agendaTimer.status, agendaIndex, agendaItems, playEndGong, agendaTimer.setTime, agendaTimer.start])
 
   const startAgenda = useCallback(() => {
     if (agendaItems.length === 0) return
     setAgendaIndex(0)
-    setTime(agendaItems[0].durationSeconds)
-    endHandled.current = false
-    setTimeout(() => start(), 50)
-  }, [agendaItems, setTime, start])
+    agendaTimer.setTime(agendaItems[0].durationSeconds)
+    agendaEndHandled.current = false
+    setTimeout(() => agendaTimer.start(), 50)
+  }, [agendaItems, agendaTimer.setTime, agendaTimer.start])
+
+  const performSwitch = useCallback((target: TimerMode) => {
+    const leaving = mode === 'simple' ? simpleTimer : agendaTimer
+    const entering = target === 'simple' ? simpleTimer : agendaTimer
+    if (leaving.status === 'running') {
+      autoResume.current[mode] = true
+      leaving.pause()
+    }
+    if (autoResume.current[target] && entering.status === 'paused') {
+      autoResume.current[target] = false
+      entering.start()
+    }
+    setMode(target)
+    setPendingMode(null)
+  }, [mode, simpleTimer, agendaTimer])
+
+  const requestModeSwitch = useCallback((target: TimerMode) => {
+    if (target === mode) return
+    const leaving = mode === 'simple' ? simpleTimer : agendaTimer
+    if (leaving.status === 'running' && !suppressSwitchWarning) {
+      setPendingMode(target)
+    } else {
+      performSwitch(target)
+    }
+  }, [mode, simpleTimer, agendaTimer, suppressSwitchWarning, performSwitch])
 
   const handleSegmentClick = useCallback((label: string) => {
     if (status === 'running') pause()
@@ -95,6 +147,7 @@ export function App() {
       '[data-testid="agenda-editor"]',
       '[data-testid="set-timer-overlay"]',
       '[data-testid="time-picker"]',
+      '[data-testid="mode-switch-modal"]',
     ]
     if (interactive.some(sel => target.closest(sel))) return
 
@@ -131,7 +184,7 @@ export function App() {
             className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${
               mode === 'simple' ? 'bg-teal-600/30 text-teal-300' : 'text-teal-400/40 hover:text-teal-300/70'
             }`}
-            onClick={() => setMode('simple')}
+            onClick={() => requestModeSwitch('simple')}
             data-testid="button-mode-simple"
           >
             <Timer size={11} />
@@ -141,7 +194,7 @@ export function App() {
             className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${
               mode === 'agenda' ? 'bg-teal-600/30 text-teal-300' : 'text-teal-400/40 hover:text-teal-300/70'
             }`}
-            onClick={() => setMode('agenda')}
+            onClick={() => requestModeSwitch('agenda')}
             data-testid="button-mode-agenda"
           >
             <List size={11} />
@@ -305,6 +358,16 @@ export function App() {
           onClose={() => setTimeEditorState(null)}
           initialSeconds={remaining}
           initialFocus={timeEditorState.focus}
+        />
+      )}
+
+      {pendingMode && (
+        <ModeSwitchModal
+          onCancel={() => setPendingMode(null)}
+          onContinue={dontShowAgain => {
+            if (dontShowAgain) setSuppressSwitchWarning(true)
+            performSwitch(pendingMode)
+          }}
         />
       )}
     </div>

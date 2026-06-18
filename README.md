@@ -43,8 +43,8 @@ live/               # production build output (served by server.cjs)
   The `fontColor` setting currently only colours the timer digits. Buttons use hardcoded Tailwind teal/white classes. Decision needed: should a separate "UI accent colour" control exist, or should `fontColor` drive everything? Recommend adding a distinct `accentColor` setting rather than overloading `fontColor`.
 
 ### Architecture
-- [ ] **Simple timer and Agenda timer should be independent**
-  Both modes currently share a single `useTimer` instance — switching modes mid-count carries the state across. Fix: instantiate two `useTimer` hooks (`simpleTimer`, `agendaTimer`) and route each mode to its own. State resets when you switch modes, and each can run simultaneously in the background.
+- [x] **Simple timer and Agenda timer should be independent**
+  Both modes now have their own `useTimer` instance (`simpleTimer`, `agendaTimer`), so each keeps its own state. Switching away from a *running* timer pauses it (with a first-time confirmation dialog that has a "don't show again" option) and auto-resumes it when you switch back.
 
 ### Agenda features
 - [ ] **Per-agenda-item settings**
