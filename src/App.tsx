@@ -116,14 +116,18 @@ export function App() {
     else reset()
   }, [mode, startAgenda, reset])
 
-  // Switching away from a running timer pauses it; it stays paused until the
-  // user returns and resumes it manually (no auto-resume).
+  // Only the active mode's timer may run. Whenever the mode changes, pause the
+  // now-inactive timer if it is still counting; it stays paused until the user
+  // returns and resumes it manually (no auto-resume).
+  useEffect(() => {
+    const inactive = mode === 'simple' ? agendaTimer : simpleTimer
+    if (inactive.status === 'running') inactive.pause()
+  }, [mode, simpleTimer.status, agendaTimer.status, simpleTimer.pause, agendaTimer.pause])
+
   const performSwitch = useCallback((target: TimerMode) => {
-    const leaving = mode === 'simple' ? simpleTimer : agendaTimer
-    if (leaving.status === 'running') leaving.pause()
     setMode(target)
     setPendingMode(null)
-  }, [mode, simpleTimer, agendaTimer])
+  }, [])
 
   const requestModeSwitch = useCallback((target: TimerMode) => {
     if (target === mode) return
