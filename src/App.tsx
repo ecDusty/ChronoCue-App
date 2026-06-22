@@ -32,6 +32,7 @@ export function App() {
   const [showAgendaEditor, setShowAgendaEditor] = useState(false)
   const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([])
   const [agendaIndex, setAgendaIndex] = useState(0)
+  const [agendaStarted, setAgendaStarted] = useState(false)
   const [timeEditorState, setTimeEditorState] = useState<SegmentClickState | null>(null)
   const [pendingMode, setPendingMode] = useState<TimerMode | null>(null)
   const [suppressSwitchWarning, setSuppressSwitchWarning] = useState(false)
@@ -41,6 +42,13 @@ export function App() {
   const { remaining, totalSeconds, status, start, pause, reset, setTime, addTime, overtimeSeconds } = timer
   const activeSettings = mode === 'simple' ? simpleSettings : agendaSettings
   const { settings, updateSetting, setBgImage } = activeSettings
+
+  // Per-item remaining time (seconds), keyed by item id, so navigating away from
+  // an item and back restores its paused progress. `agendaLiveRemaining` mirrors
+  // the agenda timer's current remaining for capture at navigation time.
+  const agendaRemaining = useRef<Record<string, number>>({})
+  const agendaLiveRemaining = useRef(0)
+  agendaLiveRemaining.current = agendaTimer.remaining
 
   const audioUnlocked = useRef(false)
   const simpleEndHandled = useRef(false)
@@ -94,20 +102,27 @@ export function App() {
   const startAgenda = useCallback(() => {
     if (agendaItems.length === 0) return
     stopCurrentSound()
+    agendaRemaining.current = {} // fresh run — clear any saved per-item progress
+    setAgendaStarted(true)
     setAgendaIndex(0)
     agendaEndHandled.current = false
     agendaTimer.setTimeAndStart(agendaItems[0].durationSeconds)
   }, [agendaItems, agendaTimer.setTimeAndStart])
 
-  // Load a given agenda item into the clock WITHOUT starting it; the user
-  // presses Start when ready. Used by the Prev/Next buttons.
+  // Navigate to another agenda item: save the current item's remaining (pausing
+  // its progress) and load the target's saved remaining — or its full duration if
+  // untouched — WITHOUT starting it. The user presses Start when ready.
   const goToAgendaItem = useCallback((index: number) => {
     if (index < 0 || index >= agendaItems.length) return
     stopCurrentSound()
+    const currentItem = agendaItems[agendaIndex]
+    if (currentItem) agendaRemaining.current[currentItem.id] = agendaLiveRemaining.current
+    const target = agendaItems[index]
+    const saved = agendaRemaining.current[target.id]
     setAgendaIndex(index)
     agendaEndHandled.current = false
-    agendaTimer.setTime(agendaItems[index].durationSeconds)
-  }, [agendaItems, agendaTimer.setTime])
+    agendaTimer.setTime(saved ?? target.durationSeconds)
+  }, [agendaItems, agendaIndex, agendaTimer.setTime])
 
   const advanceAgenda = useCallback(() => goToAgendaItem(agendaIndex + 1), [goToAgendaItem, agendaIndex])
   const previousAgenda = useCallback(() => goToAgendaItem(agendaIndex - 1), [goToAgendaItem, agendaIndex])
@@ -115,8 +130,11 @@ export function App() {
   const handleReset = useCallback(() => {
     stopCurrentSound()
     if (mode === 'agenda') {
-      // Reset only the current section back to its full duration (stays on this item).
-      agendaTimer.setTime(agendaItems[agendaIndex]?.durationSeconds ?? 0)
+      // Reset the current section to its original full duration and discard its
+      // saved progress (stays on this item).
+      const item = agendaItems[agendaIndex]
+      if (item) delete agendaRemaining.current[item.id]
+      agendaTimer.setTime(item?.durationSeconds ?? 0)
       agendaEndHandled.current = false
     } else {
       reset()
@@ -177,9 +195,9 @@ export function App() {
 
   const hasTime = totalSeconds > 0 || status !== 'idle'
   const showInlineTimePicker = mode === 'simple' && !hasTime
-  // Agenda Prev/Next navigation is available once a run is in progress (i.e. not
-  // the initial pre-start state where only "Start Agenda" shows).
-  const agendaNavVisible = mode === 'agenda' && agendaItems.length > 0 && !(status === 'idle' && remaining === 0)
+  // Agenda Prev/Next navigation is available once a run has started (i.e. not the
+  // initial pre-start state where only "Start Agenda" shows).
+  const agendaNavVisible = mode === 'agenda' && agendaItems.length > 0 && agendaStarted
 
   const bgStyle: React.CSSProperties = {
     backgroundColor: settings.bgColor,
@@ -327,7 +345,7 @@ export function App() {
                     Resume
                   </button>
                 )}
-                {(status === 'paused' || status === 'ended') && (
+                {((mode === 'simple' && (status === 'paused' || status === 'ended')) || agendaNavVisible) && (
                   <button
                     className="touch-button flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-sm transition-colors"
                     onClick={handleReset}
@@ -358,7 +376,7 @@ export function App() {
                 )}
               </div>
 
-              {mode === 'agenda' && status === 'idle' && agendaItems.length > 0 && remaining === 0 && (
+              {mode === 'agenda' && !agendaStarted && agendaItems.length > 0 && (
                 <button
                   className="touch-button flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-sm transition-colors"
                   onClick={startAgenda}
@@ -382,7 +400,12 @@ export function App() {
           sounds={soundLib.sounds}
           addSound={soundLib.addSound}
           onOpenSettings={() => setShowSettings(true)}
-          onUpdate={items => { setAgendaItems(items); setAgendaIndex(0) }}
+          onUpdate={items => {
+            setAgendaItems(items)
+            setAgendaIndex(0)
+            setAgendaStarted(false)
+            agendaRemaining.current = {}
+          }}
           onClose={() => setShowAgendaEditor(false)}
         />
       )}
