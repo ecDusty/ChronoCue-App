@@ -1,10 +1,14 @@
 import { useState } from 'react'
-import { X, ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
-import type { AgendaItem } from '../types'
+import { X, ChevronUp, ChevronDown, Trash2, SlidersHorizontal } from 'lucide-react'
+import type { AgendaItem, AgendaItemOverrides, AppSettings } from '../types'
 import { parseSeconds } from '../utils/time'
+import { Toggle } from './Toggle'
+import { SoundSelector } from './SoundSelector'
 
 interface Props {
   items: AgendaItem[]
+  settings: AppSettings
+  addSound: (file: File, onAdded?: (id: string) => void) => void
   onUpdate: (items: AgendaItem[]) => void
   onClose: () => void
 }
@@ -18,8 +22,37 @@ function inputsToSeconds(h: string, m: string, s: string): number {
   return (parseInt(h) || 0) * 3600 + (parseInt(m) || 0) * 60 + (parseInt(s) || 0)
 }
 
-export function AgendaEditor({ items, onUpdate, onClose }: Props) {
+/** One overridable boolean setting: checkbox opts in, Toggle sets the value, otherwise inherits global. */
+function OverrideBoolRow({ label, globalValue, value, onChange }: {
+  label: string
+  globalValue: boolean
+  value: boolean | undefined
+  onChange: (v: boolean | undefined) => void
+}) {
+  const overriding = value !== undefined
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <label className="flex items-center gap-2 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={overriding}
+          onChange={e => onChange(e.target.checked ? globalValue : undefined)}
+          className="w-4 h-4 accent-teal-500"
+        />
+        <span className="text-white/70 text-sm">{label}</span>
+      </label>
+      {overriding ? (
+        <Toggle enabled={value} onToggle={() => onChange(!value)} />
+      ) : (
+        <span className="text-white/30 text-xs">Using global ({globalValue ? 'On' : 'Off'})</span>
+      )}
+    </div>
+  )
+}
+
+export function AgendaEditor({ items, settings, addSound, onUpdate, onClose }: Props) {
   const [draft, setDraft] = useState<AgendaItem[]>(items)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const addItem = () => {
     setDraft(prev => [...prev, { id: crypto.randomUUID(), name: '', durationSeconds: 300 }])
@@ -31,6 +64,26 @@ export function AgendaEditor({ items, onUpdate, onClose }: Props) {
 
   const updateItem = (id: string, field: keyof AgendaItem, value: string | number) => {
     setDraft(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item))
+  }
+
+  const setOverride = <K extends keyof AgendaItemOverrides>(id: string, key: K, value: AgendaItemOverrides[K] | undefined) => {
+    setDraft(prev => prev.map(item => {
+      if (item.id !== id) return item
+      const overrides: AgendaItemOverrides = { ...item.overrides }
+      if (value === undefined) delete overrides[key]
+      else overrides[key] = value
+      return { ...item, overrides: Object.keys(overrides).length > 0 ? overrides : undefined }
+    }))
+  }
+
+  const toggleGongOverride = (id: string, on: boolean) => {
+    if (on) {
+      setOverride(id, 'playGong', settings.playGong)
+      setOverride(id, 'gongSoundId', settings.gongSoundId)
+    } else {
+      setOverride(id, 'playGong', undefined)
+      setOverride(id, 'gongSoundId', undefined)
+    }
   }
 
   const moveItem = (index: number, dir: -1 | 1) => {
@@ -70,65 +123,123 @@ export function AgendaEditor({ items, onUpdate, onClose }: Props) {
         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 mb-4">
           {draft.map((item, i) => {
             const { h, m, s } = secondsToInputs(item.durationSeconds)
+            const ov = item.overrides
+            const expanded = expandedId === item.id
+            const hasOverrides = !!ov && Object.keys(ov).length > 0
             return (
-              <div key={item.id} className="flex items-center gap-2 bg-white/5 rounded-xl p-3">
-                <div className="flex flex-col gap-1">
-                  <button
-                    className="p-1 hover:bg-white/10 rounded transition-colors text-white/40 disabled:opacity-20"
-                    onClick={() => moveItem(i, -1)}
-                    disabled={i === 0}
-                  >
-                    <ChevronUp size={14} />
-                  </button>
-                  <button
-                    className="p-1 hover:bg-white/10 rounded transition-colors text-white/40 disabled:opacity-20"
-                    onClick={() => moveItem(i, 1)}
-                    disabled={i === draft.length - 1}
-                  >
-                    <ChevronDown size={14} />
-                  </button>
-                </div>
-
-                <div className="flex-1 min-w-0 space-y-2">
-                  <input
-                    type="text"
-                    placeholder="Item name"
-                    value={item.name}
-                    onChange={e => updateItem(item.id, 'name', e.target.value)}
-                    className="w-full px-3 py-1.5 rounded-lg bg-white/10 border border-white/15 text-white text-sm placeholder:text-white/30 outline-none focus:ring-1 focus:ring-teal-500/50"
-                  />
-                  <div className="flex items-center gap-1.5">
-                    {[
-                      { val: h, ph: 'Hr',  max: 99,  key: 'h' },
-                      { val: m, ph: 'Min', max: 59,  key: 'm' },
-                      { val: s, ph: 'Sec', max: 59,  key: 's' },
-                    ].map(({ val, ph, max, key }, idx) => (
-                      <span key={key} className="flex items-center gap-1">
-                        {idx > 0 && <span className="text-white/30 text-xs">:</span>}
-                        <input
-                          type="number"
-                          placeholder={ph}
-                          min={0}
-                          max={max}
-                          value={val}
-                          onChange={e => {
-                            const vals = { h, m, s, [key]: e.target.value }
-                            updateItem(item.id, 'durationSeconds', inputsToSeconds(vals.h, vals.m, vals.s))
-                          }}
-                          className="w-14 px-2 py-1.5 rounded-lg bg-white/10 border border-white/15 text-white text-xs text-center placeholder:text-white/30 outline-none focus:ring-1 focus:ring-teal-500/50"
-                        />
-                      </span>
-                    ))}
+              <div key={item.id} className="bg-white/5 rounded-xl p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-col gap-1">
+                    <button
+                      className="p-1 hover:bg-white/10 rounded transition-colors text-white/40 disabled:opacity-20"
+                      onClick={() => moveItem(i, -1)}
+                      disabled={i === 0}
+                    >
+                      <ChevronUp size={14} />
+                    </button>
+                    <button
+                      className="p-1 hover:bg-white/10 rounded transition-colors text-white/40 disabled:opacity-20"
+                      onClick={() => moveItem(i, 1)}
+                      disabled={i === draft.length - 1}
+                    >
+                      <ChevronDown size={14} />
+                    </button>
                   </div>
+
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Item name"
+                      value={item.name}
+                      onChange={e => updateItem(item.id, 'name', e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-lg bg-white/10 border border-white/15 text-white text-sm placeholder:text-white/30 outline-none focus:ring-1 focus:ring-teal-500/50"
+                    />
+                    <div className="flex items-center gap-1.5">
+                      {[
+                        { val: h, ph: 'Hr',  max: 99,  key: 'h' },
+                        { val: m, ph: 'Min', max: 59,  key: 'm' },
+                        { val: s, ph: 'Sec', max: 59,  key: 's' },
+                      ].map(({ val, ph, max, key }, idx) => (
+                        <span key={key} className="flex items-center gap-1">
+                          {idx > 0 && <span className="text-white/30 text-xs">:</span>}
+                          <input
+                            type="number"
+                            placeholder={ph}
+                            min={0}
+                            max={max}
+                            value={val}
+                            onChange={e => {
+                              const vals = { h, m, s, [key]: e.target.value }
+                              updateItem(item.id, 'durationSeconds', inputsToSeconds(vals.h, vals.m, vals.s))
+                            }}
+                            className="w-14 px-2 py-1.5 rounded-lg bg-white/10 border border-white/15 text-white text-xs text-center placeholder:text-white/30 outline-none focus:ring-1 focus:ring-teal-500/50"
+                          />
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    className={`p-2 rounded-lg hover:bg-white/10 transition-colors shrink-0 ${hasOverrides ? 'text-teal-400' : 'text-white/30 hover:text-white/60'}`}
+                    onClick={() => setExpandedId(expanded ? null : item.id)}
+                    title="Per-item settings"
+                    data-testid={`button-item-settings-${item.id}`}
+                  >
+                    <SlidersHorizontal size={15} />
+                  </button>
+                  <button
+                    className="p-2 rounded-lg hover:bg-red-500/20 text-white/30 hover:text-red-400 transition-colors shrink-0"
+                    onClick={() => removeItem(item.id)}
+                    data-testid={`button-remove-item-${item.id}`}
+                  >
+                    <Trash2 size={15} />
+                  </button>
                 </div>
 
-                <button
-                  className="p-2 rounded-lg hover:bg-red-500/20 text-white/30 hover:text-red-400 transition-colors shrink-0"
-                  onClick={() => removeItem(item.id)}
-                  data-testid={`button-remove-item-${item.id}`}
-                >
-                  <Trash2 size={15} />
-                </button>
+                {expanded && (
+                  <div className="border-t border-white/10 pt-3 space-y-3" data-testid={`item-settings-${item.id}`}>
+                    <OverrideBoolRow
+                      label="Show overtime"
+                      globalValue={settings.showOvertime}
+                      value={ov?.showOvertime}
+                      onChange={v => setOverride(item.id, 'showOvertime', v)}
+                    />
+                    <OverrideBoolRow
+                      label="Fade / blink"
+                      globalValue={settings.fadeEffect}
+                      value={ov?.fadeEffect}
+                      onChange={v => setOverride(item.id, 'fadeEffect', v)}
+                    />
+
+                    {/* Gong override */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={ov?.playGong !== undefined}
+                            onChange={e => toggleGongOverride(item.id, e.target.checked)}
+                            className="w-4 h-4 accent-teal-500"
+                          />
+                          <span className="text-white/70 text-sm">Gong</span>
+                        </label>
+                        {ov?.playGong !== undefined ? (
+                          <Toggle enabled={ov.playGong} onToggle={() => setOverride(item.id, 'playGong', !ov.playGong)} />
+                        ) : (
+                          <span className="text-white/30 text-xs">Using global ({settings.playGong ? 'On' : 'Off'})</span>
+                        )}
+                      </div>
+                      {ov?.playGong && (
+                        <SoundSelector
+                          sounds={settings.sounds}
+                          selectedId={ov.gongSoundId ?? settings.gongSoundId}
+                          onSelect={id => setOverride(item.id, 'gongSoundId', id)}
+                          onUpload={file => addSound(file, id => setOverride(item.id, 'gongSoundId', id))}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })}

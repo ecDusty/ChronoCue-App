@@ -47,8 +47,8 @@ live/               # production build output (served by server.cjs)
   Both modes now have their own `useTimer` instance (`simpleTimer`, `agendaTimer`), so each keeps its own state. Switching away from a *running* timer pauses it (with a first-time confirmation dialog that has a "don't show again" option) and auto-resumes it when you switch back.
 
 ### Agenda features
-- [ ] **Per-agenda-item settings**
-  Each agenda item should carry its own toggles: overtime display on/off, clock blink/fade on/off, gong on/off, gong sound selection. Extend the `AgendaItem` type and surface controls in the agenda editor. Global settings become defaults; per-item settings override them.
+- [x] **Per-agenda-item settings**
+  Each agenda item can override the global toggles (overtime display, clock blink/fade, gong on/off, gong sound) from a collapsible per-item panel in the agenda editor; unset overrides inherit the global setting. Agenda items no longer auto-advance — when an item ends the gong plays and a **Next** button proceeds to (and starts) the following item.
 
 - [ ] **Total agenda time tracking with over/under display**
   Track the scheduled total duration (sum of all item durations) vs. actual elapsed time. Show a running delta during the agenda (e.g. "+0:32 over") and a summary when the agenda ends. Also track per-item over/under for a post-run breakdown.
@@ -57,4 +57,5 @@ live/               # production build output (served by server.cjs)
 - [ ] Fix quick add button in Agenda mode
 - [ ] Low-time reminders (1 min, 2 min, 5 min, half-way) with sound and visual options
 - [ ] Excel import for agenda items
-- [ ] Sound options dropdown for end noise
+- [x] Sound options dropdown for end noise
+  Uploaded audio files accumulate into a reusable sound library; the gong sound is chosen from a dropdown (Default Gong + uploaded clips) for the global/simple gong and per agenda item.

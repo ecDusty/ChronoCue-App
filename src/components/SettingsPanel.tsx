@@ -4,17 +4,18 @@ import type { AppSettings } from '../types'
 import { FONT_OPTIONS } from '../hooks/useSettings'
 import { Toggle } from './Toggle'
 import { TimeSizeSelector } from './TimeSizeSelector'
-import { GongSourceSelector } from './GongSourceSelector'
+import { SoundSelector } from './SoundSelector'
 
 interface Props {
   settings: AppSettings
   updateSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => void
   setBgImage: (file: File | null) => void
-  setCustomGong: (file: File | null) => void
+  addSound: (file: File, onAdded?: (id: string) => void) => void
+  removeSound: (id: string) => void
   onClose: () => void
 }
 
-export function SettingsPanel({ settings, updateSetting, setBgImage, setCustomGong, onClose }: Props) {
+export function SettingsPanel({ settings, updateSetting, setBgImage, addSound, removeSound, onClose }: Props) {
   const bgFileRef = useRef<HTMLInputElement>(null)
 
   return (
@@ -138,12 +139,15 @@ export function SettingsPanel({ settings, updateSetting, setBgImage, setCustomGo
         </div>
 
         {settings.playGong && (
-          <GongSourceSelector
-            gongSource={settings.gongSource}
-            customGongFileName={settings.customGongFileName}
-            onSourceChange={v => updateSetting('gongSource', v)}
-            onFileUpload={setCustomGong}
-          />
+          <div className="pl-2">
+            <SoundSelector
+              sounds={settings.sounds}
+              selectedId={settings.gongSoundId}
+              onSelect={id => updateSetting('gongSoundId', id)}
+              onUpload={file => addSound(file, id => updateSetting('gongSoundId', id))}
+              onRemove={removeSound}
+            />
+          </div>
         )}
 
         {/* Fade Effect */}

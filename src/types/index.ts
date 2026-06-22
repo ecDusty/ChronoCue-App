@@ -4,12 +4,25 @@ export type TimerMode = 'simple' | 'agenda'
 
 export type TimerSize = 'small' | 'medium' | 'large' | 'xlarge'
 
-export type GongSource = 'default' | 'custom'
+export interface SoundClip {
+  id: string
+  name: string
+  dataUrl: string
+}
+
+/** Per-item overrides; an undefined field means "inherit the global setting". */
+export interface AgendaItemOverrides {
+  showOvertime?: boolean
+  fadeEffect?: boolean
+  playGong?: boolean
+  gongSoundId?: string
+}
 
 export interface AgendaItem {
   id: string
   name: string
   durationSeconds: number
+  overrides?: AgendaItemOverrides
 }
 
 export interface AppSettings {
@@ -17,9 +30,8 @@ export interface AppSettings {
   bgImage: string | null
   fontColor: string
   playGong: boolean
-  gongSource: GongSource
-  customGongDataUrl: string | null
-  customGongFileName: string | null
+  gongSoundId: string
+  sounds: SoundClip[]
   fadeEffect: boolean
   timerSize: TimerSize
   fontFamily: string
