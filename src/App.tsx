@@ -99,14 +99,15 @@ export function App() {
     agendaTimer.setTimeAndStart(agendaItems[0].durationSeconds)
   }, [agendaItems, agendaTimer.setTimeAndStart])
 
-  // Jump to a given agenda item and start it. Used by the Prev/Next buttons.
+  // Load a given agenda item into the clock WITHOUT starting it; the user
+  // presses Start when ready. Used by the Prev/Next buttons.
   const goToAgendaItem = useCallback((index: number) => {
     if (index < 0 || index >= agendaItems.length) return
     stopCurrentSound()
     setAgendaIndex(index)
     agendaEndHandled.current = false
-    agendaTimer.setTimeAndStart(agendaItems[index].durationSeconds)
-  }, [agendaItems, agendaTimer.setTimeAndStart])
+    agendaTimer.setTime(agendaItems[index].durationSeconds)
+  }, [agendaItems, agendaTimer.setTime])
 
   const advanceAgenda = useCallback(() => goToAgendaItem(agendaIndex + 1), [goToAgendaItem, agendaIndex])
   const previousAgenda = useCallback(() => goToAgendaItem(agendaIndex - 1), [goToAgendaItem, agendaIndex])

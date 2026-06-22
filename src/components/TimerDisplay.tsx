@@ -83,8 +83,9 @@ export function TimerDisplay({
       </div>
 
       {showOvertimeDisplay && (
+        <div className="absolute top-full left-0 right-0 mt-[2vh] flex justify-center">
         <div
-          className="absolute top-full left-1/2 -translate-x-1/2 mt-[2vh] flex items-center justify-center select-none animate-fade-in whitespace-nowrap"
+          className="flex items-center justify-center select-none animate-fade-in whitespace-nowrap"
           style={{ color: '#f87171', fontFamily }}
           data-testid="overtime-display"
         >
@@ -118,6 +119,7 @@ export function TimerDisplay({
               </span>
             </span>
           ))}
+        </div>
         </div>
       )}
     </div>
