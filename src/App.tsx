@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Play, Pause, RotateCcw, Settings, List, Timer, SkipForward } from 'lucide-react'
 
 import { useTimer } from './hooks/useTimer'
-import { useSettings, DEFAULT_GONG_ID } from './hooks/useSettings'
-import { unlockAudio, playDefaultGong, playCustomSound } from './utils/audio'
+import { useSettings, useSoundLibrary, DEFAULT_GONG_ID } from './hooks/useSettings'
+import { unlockAudio, playDefaultGong, playCustomSound, stopCurrentSound } from './utils/audio'
 import { TimerDisplay } from './components/TimerDisplay'
 import { TimeInput } from './components/TimeInput'
 import { TimeAdjust } from './components/TimeAdjust'
@@ -22,7 +22,10 @@ interface SegmentClickState {
 export function App() {
   const simpleTimer = useTimer()
   const agendaTimer = useTimer()
-  const { settings, updateSetting, setBgImage, addSound, removeSound } = useSettings()
+  // Simple and Agenda keep fully independent global settings; the sound library is shared.
+  const simpleSettings = useSettings()
+  const agendaSettings = useSettings()
+  const soundLib = useSoundLibrary()
 
   const [mode, setMode] = useState<TimerMode>('simple')
   const [showSettings, setShowSettings] = useState(false)
@@ -33,15 +36,15 @@ export function App() {
   const [pendingMode, setPendingMode] = useState<TimerMode | null>(null)
   const [suppressSwitchWarning, setSuppressSwitchWarning] = useState(false)
 
-  // Active timer routed to the UI; the other keeps its own independent state.
+  // Active timer + settings routed to the UI; the other mode keeps its own state.
   const timer = mode === 'simple' ? simpleTimer : agendaTimer
   const { remaining, totalSeconds, status, start, pause, reset, setTime, addTime, overtimeSeconds } = timer
+  const activeSettings = mode === 'simple' ? simpleSettings : agendaSettings
+  const { settings, updateSetting, setBgImage } = activeSettings
 
   const audioUnlocked = useRef(false)
   const simpleEndHandled = useRef(false)
   const agendaEndHandled = useRef(false)
-  // Timers paused because their mode was switched away from should resume on return.
-  const autoResume = useRef<Record<TimerMode, boolean>>({ simple: false, agenda: false })
 
   const ensureAudioUnlocked = useCallback(() => {
     if (!audioUnlocked.current) {
@@ -63,32 +66,34 @@ export function App() {
       playDefaultGong()
       return
     }
-    const clip = settings.sounds.find(s => s.id === gongSoundId)
+    const clip = soundLib.sounds.find(s => s.id === gongSoundId)
     if (clip) playCustomSound(clip.dataUrl)
     else playDefaultGong()
-  }, [settings.sounds])
+  }, [soundLib.sounds])
 
-  // Simple timer end: play the global gong.
+  // Simple timer end: play the Simple-mode global gong.
   useEffect(() => {
     if (simpleTimer.status === 'running') simpleEndHandled.current = false
     if (simpleTimer.status === 'ended' && !simpleEndHandled.current) {
       simpleEndHandled.current = true
-      playGongSound(settings.playGong, settings.gongSoundId)
+      playGongSound(simpleSettings.settings.playGong, simpleSettings.settings.gongSoundId)
     }
-  }, [simpleTimer.status, playGongSound, settings.playGong, settings.gongSoundId])
+  }, [simpleTimer.status, playGongSound, simpleSettings.settings.playGong, simpleSettings.settings.gongSoundId])
 
-  // Agenda timer end: play the ended item's effective gong. Items do NOT
-  // auto-advance — the user proceeds with the "Next" button.
+  // Agenda timer end: play the ended item's effective gong (item overrides over
+  // the Agenda globals). Items do NOT auto-advance — the user clicks "Next".
   useEffect(() => {
     if (agendaTimer.status === 'running') agendaEndHandled.current = false
     if (agendaTimer.status !== 'ended' || agendaEndHandled.current) return
     agendaEndHandled.current = true
     const endedOv = agendaItems[agendaIndex]?.overrides
-    playGongSound(endedOv?.playGong ?? settings.playGong, endedOv?.gongSoundId ?? settings.gongSoundId)
-  }, [agendaTimer.status, agendaIndex, agendaItems, playGongSound, settings.playGong, settings.gongSoundId])
+    const g = agendaSettings.settings
+    playGongSound(endedOv?.playGong ?? g.playGong, endedOv?.gongSoundId ?? g.gongSoundId)
+  }, [agendaTimer.status, agendaIndex, agendaItems, playGongSound, agendaSettings.settings.playGong, agendaSettings.settings.gongSoundId])
 
   const startAgenda = useCallback(() => {
     if (agendaItems.length === 0) return
+    stopCurrentSound()
     setAgendaIndex(0)
     agendaTimer.setTime(agendaItems[0].durationSeconds)
     agendaEndHandled.current = false
@@ -97,6 +102,7 @@ export function App() {
 
   const advanceAgenda = useCallback(() => {
     if (agendaIndex >= agendaItems.length - 1) return
+    stopCurrentSound()
     const nextIndex = agendaIndex + 1
     setAgendaIndex(nextIndex)
     agendaTimer.setTime(agendaItems[nextIndex].durationSeconds)
@@ -104,17 +110,17 @@ export function App() {
     setTimeout(() => agendaTimer.start(), 50)
   }, [agendaIndex, agendaItems, agendaTimer.setTime, agendaTimer.start])
 
+  const handleReset = useCallback(() => {
+    stopCurrentSound()
+    if (mode === 'agenda') startAgenda()
+    else reset()
+  }, [mode, startAgenda, reset])
+
+  // Switching away from a running timer pauses it; it stays paused until the
+  // user returns and resumes it manually (no auto-resume).
   const performSwitch = useCallback((target: TimerMode) => {
     const leaving = mode === 'simple' ? simpleTimer : agendaTimer
-    const entering = target === 'simple' ? simpleTimer : agendaTimer
-    if (leaving.status === 'running') {
-      autoResume.current[mode] = true
-      leaving.pause()
-    }
-    if (autoResume.current[target] && entering.status === 'paused') {
-      autoResume.current[target] = false
-      entering.start()
-    }
+    if (leaving.status === 'running') leaving.pause()
     setMode(target)
     setPendingMode(null)
   }, [mode, simpleTimer, agendaTimer])
@@ -310,7 +316,7 @@ export function App() {
                 {(status === 'paused' || status === 'ended') && (
                   <button
                     className="touch-button flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-sm transition-colors"
-                    onClick={() => (mode === 'agenda' ? startAgenda() : reset())}
+                    onClick={handleReset}
                     data-testid="button-reset"
                   >
                     <RotateCcw size={13} />
@@ -343,25 +349,30 @@ export function App() {
         )}
       </main>
 
-      {/* Overlays */}
-      {showSettings && (
-        <SettingsPanel
-          settings={settings}
-          updateSetting={updateSetting}
-          setBgImage={setBgImage}
-          addSound={addSound}
-          removeSound={removeSound}
-          onClose={() => setShowSettings(false)}
-        />
-      )}
-
+      {/* Overlays. AgendaEditor renders before SettingsPanel so the settings
+          panel (opened from inside the editor) stacks on top. */}
       {showAgendaEditor && (
         <AgendaEditor
           items={agendaItems}
-          settings={settings}
-          addSound={addSound}
+          settings={agendaSettings.settings}
+          sounds={soundLib.sounds}
+          addSound={soundLib.addSound}
+          onOpenSettings={() => setShowSettings(true)}
           onUpdate={items => { setAgendaItems(items); setAgendaIndex(0) }}
           onClose={() => setShowAgendaEditor(false)}
+        />
+      )}
+
+      {showSettings && (
+        <SettingsPanel
+          title={mode === 'agenda' ? 'Agenda Settings' : 'Simple Settings'}
+          settings={settings}
+          updateSetting={updateSetting}
+          setBgImage={setBgImage}
+          sounds={soundLib.sounds}
+          addSound={soundLib.addSound}
+          removeSound={soundLib.removeSound}
+          onClose={() => setShowSettings(false)}
         />
       )}
 

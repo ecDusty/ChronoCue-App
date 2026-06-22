@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { X, ChevronUp, ChevronDown, Trash2, SlidersHorizontal } from 'lucide-react'
-import type { AgendaItem, AgendaItemOverrides, AppSettings } from '../types'
+import { X, ChevronUp, ChevronDown, Trash2, SlidersHorizontal, Settings } from 'lucide-react'
+import type { AgendaItem, AgendaItemOverrides, AppSettings, SoundClip } from '../types'
 import { parseSeconds } from '../utils/time'
 import { Toggle } from './Toggle'
 import { SoundSelector } from './SoundSelector'
@@ -8,7 +8,9 @@ import { SoundSelector } from './SoundSelector'
 interface Props {
   items: AgendaItem[]
   settings: AppSettings
+  sounds: SoundClip[]
   addSound: (file: File, onAdded?: (id: string) => void) => void
+  onOpenSettings: () => void
   onUpdate: (items: AgendaItem[]) => void
   onClose: () => void
 }
@@ -50,7 +52,7 @@ function OverrideBoolRow({ label, globalValue, value, onChange }: {
   )
 }
 
-export function AgendaEditor({ items, settings, addSound, onUpdate, onClose }: Props) {
+export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings, onUpdate, onClose }: Props) {
   const [draft, setDraft] = useState<AgendaItem[]>(items)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
@@ -109,7 +111,7 @@ export function AgendaEditor({ items, settings, addSound, onUpdate, onClose }: P
       data-testid="agenda-editor"
     >
       <div className="w-full max-w-lg bg-[#1a1a1a] rounded-t-2xl sm:rounded-2xl p-6 max-h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-1">
           <h2 className="text-white text-lg font-semibold">Edit Agenda</h2>
           <button
             className="touch-button p-2 rounded-lg hover:bg-white/10 text-white/60 transition-colors"
@@ -119,6 +121,14 @@ export function AgendaEditor({ items, settings, addSound, onUpdate, onClose }: P
             <X size={20} />
           </button>
         </div>
+        <button
+          className="touch-button flex items-center gap-1.5 mb-4 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-teal-300/80 hover:text-teal-200 text-xs font-medium transition-colors self-start"
+          onClick={onOpenSettings}
+          data-testid="button-agenda-global-settings"
+        >
+          <Settings size={14} />
+          Agenda Settings
+        </button>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 mb-4">
           {draft.map((item, i) => {
@@ -231,7 +241,7 @@ export function AgendaEditor({ items, settings, addSound, onUpdate, onClose }: P
                       </div>
                       {ov?.playGong && (
                         <SoundSelector
-                          sounds={settings.sounds}
+                          sounds={sounds}
                           selectedId={ov.gongSoundId ?? settings.gongSoundId}
                           onSelect={id => setOverride(item.id, 'gongSoundId', id)}
                           onUpload={file => addSound(file, id => setOverride(item.id, 'gongSoundId', id))}

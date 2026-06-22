@@ -18,7 +18,7 @@ export function ModeSwitchModal({ onCancel, onContinue }: Props) {
         <div className="space-y-2">
           <h2 className="text-white text-lg font-semibold">Switch timer mode?</h2>
           <p className="text-white/60 text-sm">
-            Switching modes pauses the current timer. It won't resume until you switch back.
+            Switching modes pauses the current timer. It stays paused until you switch back and resume it.
           </p>
         </div>
 

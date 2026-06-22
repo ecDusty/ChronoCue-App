@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import type { AppSettings, FontOption, TimerSize } from '../types'
+import type { AppSettings, FontOption, SoundClip, TimerSize } from '../types'
 
 /** Reserved id for the built-in synthesized gong (not a library clip). */
 export const DEFAULT_GONG_ID = 'default'
@@ -26,7 +26,6 @@ const DEFAULT_SETTINGS: AppSettings = {
   fontColor: '#ffffff',
   playGong: true,
   gongSoundId: DEFAULT_GONG_ID,
-  sounds: [],
   fadeEffect: true,
   timerSize: 'large',
   fontFamily: FONT_OPTIONS[0].value,
@@ -37,11 +36,9 @@ export interface UseSettingsReturn {
   settings: AppSettings
   updateSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => void
   setBgImage: (file: File | null) => void
-  /** Reads the file into a library SoundClip and appends it; `onAdded` receives the new id. */
-  addSound: (file: File, onAdded?: (id: string) => void) => void
-  removeSound: (id: string) => void
 }
 
+/** Independent settings instance. Call once per mode (Simple / Agenda) for separate state. */
 export function useSettings(): UseSettingsReturn {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS)
 
@@ -62,24 +59,34 @@ export function useSettings(): UseSettingsReturn {
     reader.readAsDataURL(file)
   }, [])
 
+  return { settings, updateSetting, setBgImage }
+}
+
+export interface SoundLibrary {
+  sounds: SoundClip[]
+  /** Reads the file into a SoundClip and appends it; `onAdded` receives the new id. */
+  addSound: (file: File, onAdded?: (id: string) => void) => void
+  removeSound: (id: string) => void
+}
+
+/** Shared, mode-agnostic library of uploaded sounds reusable everywhere. */
+export function useSoundLibrary(): SoundLibrary {
+  const [sounds, setSounds] = useState<SoundClip[]>([])
+
   const addSound = useCallback((file: File, onAdded?: (id: string) => void) => {
     const reader = new FileReader()
     reader.onload = e => {
       const dataUrl = e.target?.result as string
       const clip = { id: crypto.randomUUID(), name: file.name, dataUrl }
-      setSettings(prev => ({ ...prev, sounds: [...prev.sounds, clip] }))
+      setSounds(prev => [...prev, clip])
       onAdded?.(clip.id)
     }
     reader.readAsDataURL(file)
   }, [])
 
   const removeSound = useCallback((id: string) => {
-    setSettings(prev => ({
-      ...prev,
-      sounds: prev.sounds.filter(s => s.id !== id),
-      gongSoundId: prev.gongSoundId === id ? DEFAULT_GONG_ID : prev.gongSoundId,
-    }))
+    setSounds(prev => prev.filter(s => s.id !== id))
   }, [])
 
-  return { settings, updateSetting, setBgImage, addSound, removeSound }
+  return { sounds, addSound, removeSound }
 }

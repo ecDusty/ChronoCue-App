@@ -1,5 +1,5 @@
-import { useRef } from 'react'
-import { X } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { X, ChevronDown, ChevronUp } from 'lucide-react'
 import type { SoundClip } from '../types'
 import { DEFAULT_GONG_ID } from '../hooks/useSettings'
 
@@ -13,30 +13,42 @@ interface Props {
 
 export function SoundSelector({ sounds, selectedId, onSelect, onUpload, onRemove }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
-  const canRemove = !!onRemove && selectedId !== DEFAULT_GONG_ID && sounds.some(s => s.id === selectedId)
+  const [open, setOpen] = useState(false)
+  // Coerce a dangling reference (clip removed from the library) back to the default.
+  const value = selectedId === DEFAULT_GONG_ID || sounds.some(s => s.id === selectedId)
+    ? selectedId
+    : DEFAULT_GONG_ID
+  const canRemove = !!onRemove && value !== DEFAULT_GONG_ID
 
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <select
-          value={selectedId}
-          onChange={e => onSelect(e.target.value)}
-          className="flex-1 min-w-0 px-3 py-2.5 rounded-lg bg-white/10 text-white text-sm outline-none focus:ring-2 focus:ring-white/20 appearance-none cursor-pointer"
-          data-testid="select-gong-sound"
-        >
-          <option value={DEFAULT_GONG_ID} style={{ backgroundColor: '#1a1a1a', color: '#fff' }}>
-            Default Gong
-          </option>
-          {sounds.map(s => (
-            <option key={s.id} value={s.id} style={{ backgroundColor: '#1a1a1a', color: '#fff' }}>
-              {s.name}
+        <div className="relative flex-1 min-w-0">
+          <select
+            value={value}
+            onChange={e => { onSelect(e.target.value); setOpen(false) }}
+            onFocus={() => setOpen(true)}
+            onBlur={() => setOpen(false)}
+            className="w-full pl-3 pr-9 py-2.5 rounded-lg bg-white/10 text-white text-sm outline-none focus:ring-2 focus:ring-white/20 appearance-none cursor-pointer"
+            data-testid="select-gong-sound"
+          >
+            <option value={DEFAULT_GONG_ID} style={{ backgroundColor: '#1a1a1a', color: '#fff' }}>
+              Default Gong
             </option>
-          ))}
-        </select>
+            {sounds.map(s => (
+              <option key={s.id} value={s.id} style={{ backgroundColor: '#1a1a1a', color: '#fff' }}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/50">
+            {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </span>
+        </div>
         {canRemove && (
           <button
             className="touch-button p-2 rounded-lg hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-colors shrink-0"
-            onClick={() => onRemove?.(selectedId)}
+            onClick={() => onRemove?.(value)}
             title="Remove this sound from the library"
             data-testid="button-remove-sound"
           >

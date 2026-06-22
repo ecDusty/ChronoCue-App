@@ -31,7 +31,6 @@ export interface AppSettings {
   fontColor: string
   playGong: boolean
   gongSoundId: string
-  sounds: SoundClip[]
   fadeEffect: boolean
   timerSize: TimerSize
   fontFamily: string

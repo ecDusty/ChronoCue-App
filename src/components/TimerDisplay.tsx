@@ -47,7 +47,7 @@ export function TimerDisplay({
   const overtimeSegments = showOvertimeDisplay ? buildSegments(overtimeSeconds) : []
 
   return (
-    <div className="flex flex-col items-center gap-[2vh]">
+    <div className="relative flex flex-col items-center">
       <div
         className={`timer-display flex items-center justify-center select-none${shouldPulse ? ' animate-fade-pulse' : ''}`}
         style={{ color: fontColor, fontFamily }}
@@ -84,7 +84,7 @@ export function TimerDisplay({
 
       {showOvertimeDisplay && (
         <div
-          className="flex items-center justify-center select-none animate-fade-in"
+          className="absolute top-full left-1/2 -translate-x-1/2 mt-[2vh] flex items-center justify-center select-none animate-fade-in whitespace-nowrap"
           style={{ color: '#f87171', fontFamily }}
           data-testid="overtime-display"
         >

@@ -1,21 +1,23 @@
 import { useRef } from 'react'
 import { X } from 'lucide-react'
-import type { AppSettings } from '../types'
+import type { AppSettings, SoundClip } from '../types'
 import { FONT_OPTIONS } from '../hooks/useSettings'
 import { Toggle } from './Toggle'
 import { TimeSizeSelector } from './TimeSizeSelector'
 import { SoundSelector } from './SoundSelector'
 
 interface Props {
+  title?: string
   settings: AppSettings
   updateSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => void
   setBgImage: (file: File | null) => void
+  sounds: SoundClip[]
   addSound: (file: File, onAdded?: (id: string) => void) => void
   removeSound: (id: string) => void
   onClose: () => void
 }
 
-export function SettingsPanel({ settings, updateSetting, setBgImage, addSound, removeSound, onClose }: Props) {
+export function SettingsPanel({ title = 'Settings', settings, updateSetting, setBgImage, sounds, addSound, removeSound, onClose }: Props) {
   const bgFileRef = useRef<HTMLInputElement>(null)
 
   return (
@@ -26,7 +28,7 @@ export function SettingsPanel({ settings, updateSetting, setBgImage, addSound, r
     >
       <div className="w-full max-w-md bg-[#1a1a1a] rounded-t-2xl sm:rounded-2xl p-6 space-y-5 max-h-[80vh] overflow-y-auto custom-scrollbar">
         <div className="flex items-center justify-between">
-          <h2 className="text-white text-lg font-semibold">Settings</h2>
+          <h2 className="text-white text-lg font-semibold">{title}</h2>
           <button
             className="touch-button p-2 rounded-lg hover:bg-white/10 text-white/60 transition-colors"
             onClick={onClose}
@@ -141,7 +143,7 @@ export function SettingsPanel({ settings, updateSetting, setBgImage, addSound, r
         {settings.playGong && (
           <div className="pl-2">
             <SoundSelector
-              sounds={settings.sounds}
+              sounds={sounds}
               selectedId={settings.gongSoundId}
               onSelect={id => updateSetting('gongSoundId', id)}
               onUpload={file => addSound(file, id => updateSetting('gongSoundId', id))}

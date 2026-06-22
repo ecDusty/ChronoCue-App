@@ -1,8 +1,22 @@
 let audioCtx: AudioContext | null = null
+let currentAudio: HTMLAudioElement | null = null
+let activeOscillators: OscillatorNode[] = []
 
 function getAudioContext(): AudioContext {
   if (!audioCtx) audioCtx = new AudioContext()
   return audioCtx
+}
+
+/** Stop any gong/custom sound that is currently playing. */
+export function stopCurrentSound(): void {
+  if (currentAudio) {
+    try { currentAudio.pause(); currentAudio.currentTime = 0 } catch { /* ignore */ }
+    currentAudio = null
+  }
+  for (const osc of activeOscillators) {
+    try { osc.stop() } catch { /* already stopped */ }
+  }
+  activeOscillators = []
 }
 
 export function unlockAudio(): void {
@@ -21,6 +35,7 @@ export function unlockAudio(): void {
 
 export function playDefaultGong(): void {
   try {
+    stopCurrentSound()
     const ctx = getAudioContext()
     if (ctx.state === 'suspended') ctx.resume()
     const t = ctx.currentTime
@@ -63,6 +78,7 @@ export function playDefaultGong(): void {
     osc1.start(t); osc1.stop(t + 4.5)
     osc2.start(t); osc2.stop(t + 3.5)
     osc3.start(t); osc3.stop(t + 2.5)
+    activeOscillators = [osc1, osc2, osc3]
   } catch (err) {
     console.warn('Could not play gong:', err)
   }
@@ -70,7 +86,10 @@ export function playDefaultGong(): void {
 
 export function playCustomSound(dataUrl: string): void {
   try {
-    new Audio(dataUrl).play().catch(err => console.warn('Could not play custom sound:', err))
+    stopCurrentSound()
+    const audio = new Audio(dataUrl)
+    currentAudio = audio
+    audio.play().catch(err => console.warn('Could not play custom sound:', err))
   } catch (err) {
     console.warn('Could not play custom sound:', err)
   }
