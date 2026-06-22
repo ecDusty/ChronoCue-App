@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Play, Pause, RotateCcw, Settings, List, Timer, SkipForward } from 'lucide-react'
+import { Play, Pause, RotateCcw, Settings, List, Timer, SkipForward, SkipBack } from 'lucide-react'
 
 import { useTimer } from './hooks/useTimer'
 import { useSettings, useSoundLibrary, DEFAULT_GONG_ID } from './hooks/useSettings'
@@ -100,21 +100,29 @@ export function App() {
     setTimeout(() => agendaTimer.start(), 50)
   }, [agendaItems, agendaTimer.setTime, agendaTimer.start])
 
-  const advanceAgenda = useCallback(() => {
-    if (agendaIndex >= agendaItems.length - 1) return
+  // Jump to a given agenda item and start it. Used by the Prev/Next buttons.
+  const goToAgendaItem = useCallback((index: number) => {
+    if (index < 0 || index >= agendaItems.length) return
     stopCurrentSound()
-    const nextIndex = agendaIndex + 1
-    setAgendaIndex(nextIndex)
-    agendaTimer.setTime(agendaItems[nextIndex].durationSeconds)
+    setAgendaIndex(index)
+    agendaTimer.setTime(agendaItems[index].durationSeconds)
     agendaEndHandled.current = false
     setTimeout(() => agendaTimer.start(), 50)
-  }, [agendaIndex, agendaItems, agendaTimer.setTime, agendaTimer.start])
+  }, [agendaItems, agendaTimer.setTime, agendaTimer.start])
+
+  const advanceAgenda = useCallback(() => goToAgendaItem(agendaIndex + 1), [goToAgendaItem, agendaIndex])
+  const previousAgenda = useCallback(() => goToAgendaItem(agendaIndex - 1), [goToAgendaItem, agendaIndex])
 
   const handleReset = useCallback(() => {
     stopCurrentSound()
-    if (mode === 'agenda') startAgenda()
-    else reset()
-  }, [mode, startAgenda, reset])
+    if (mode === 'agenda') {
+      // Reset only the current section back to its full duration (stays on this item).
+      agendaTimer.setTime(agendaItems[agendaIndex]?.durationSeconds ?? 0)
+      agendaEndHandled.current = false
+    } else {
+      reset()
+    }
+  }, [mode, agendaItems, agendaIndex, agendaTimer.setTime, reset])
 
   // Only the active mode's timer may run. Whenever the mode changes, pause the
   // now-inactive timer if it is still counting; it stays paused until the user
@@ -170,6 +178,9 @@ export function App() {
 
   const hasTime = totalSeconds > 0 || status !== 'idle'
   const showInlineTimePicker = mode === 'simple' && !hasTime
+  // Agenda Prev/Next navigation is available once a run is in progress (i.e. not
+  // the initial pre-start state where only "Start Agenda" shows).
+  const agendaNavVisible = mode === 'agenda' && agendaItems.length > 0 && !(status === 'idle' && remaining === 0)
 
   const bgStyle: React.CSSProperties = {
     backgroundColor: settings.bgColor,
@@ -277,6 +288,16 @@ export function App() {
               )}
 
               <div className="flex items-center gap-2">
+                {agendaNavVisible && agendaIndex > 0 && (
+                  <button
+                    className="touch-button flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-sm transition-colors"
+                    onClick={previousAgenda}
+                    data-testid="button-prev-item"
+                  >
+                    <SkipBack size={14} />
+                    Prev
+                  </button>
+                )}
                 {status === 'idle' && remaining > 0 && (
                   <button
                     className="touch-button flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 active:bg-teal-400 text-white font-semibold text-sm transition-colors"
@@ -307,16 +328,6 @@ export function App() {
                     Resume
                   </button>
                 )}
-                {mode === 'agenda' && status === 'ended' && agendaIndex < agendaItems.length - 1 && (
-                  <button
-                    className="touch-button flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 active:bg-teal-400 text-white font-semibold text-sm transition-colors"
-                    onClick={advanceAgenda}
-                    data-testid="button-next-item"
-                  >
-                    <SkipForward size={14} />
-                    Next
-                  </button>
-                )}
                 {(status === 'paused' || status === 'ended') && (
                   <button
                     className="touch-button flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-sm transition-colors"
@@ -325,6 +336,16 @@ export function App() {
                   >
                     <RotateCcw size={13} />
                     Reset
+                  </button>
+                )}
+                {agendaNavVisible && agendaIndex < agendaItems.length - 1 && (
+                  <button
+                    className="touch-button flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 active:bg-teal-400 text-white font-semibold text-sm transition-colors"
+                    onClick={advanceAgenda}
+                    data-testid="button-next-item"
+                  >
+                    <SkipForward size={14} />
+                    Next
                   </button>
                 )}
                 {status === 'idle' && remaining > 0 && mode === 'simple' && (
