@@ -9,6 +9,8 @@ export interface UseTimerReturn {
   pause: () => void
   reset: () => void
   setTime: (seconds: number) => void
+  /** Set the duration and begin counting in one atomic call (no stale state). */
+  setTimeAndStart: (seconds: number) => void
   addTime: (seconds: number) => void
   overtimeSeconds: number
 }
@@ -99,6 +101,25 @@ export function useTimer(): UseTimerReturn {
     setStatus('idle')
   }, [clearMain, clearOvertime])
 
+  const setTimeAndStart = useCallback((seconds: number) => {
+    clearMain()
+    clearOvertime()
+    overtimeStartTs.current = 0
+    setOvertimeSeconds(0)
+    const secs = Math.max(0, seconds)
+    initialSecondsRef.current = secs
+    setTotalSeconds(secs)
+    const ms = secs * 1000
+    setRemainingMs(ms)
+    if (ms <= 0) {
+      setStatus('idle')
+      return
+    }
+    targetTs.current = Date.now() + ms
+    setStatus('running')
+    mainInterval.current = window.setInterval(tick, 200)
+  }, [clearMain, clearOvertime, tick])
+
   const addTime = useCallback((seconds: number) => {
     const deltaMs = seconds * 1000
     setRemainingMs(prev => {
@@ -111,5 +132,5 @@ export function useTimer(): UseTimerReturn {
 
   useEffect(() => () => { clearMain(); clearOvertime() }, [clearMain, clearOvertime])
 
-  return { remaining, totalSeconds, status, start, pause, reset, setTime, addTime, overtimeSeconds }
+  return { remaining, totalSeconds, status, start, pause, reset, setTime, setTimeAndStart, addTime, overtimeSeconds }
 }

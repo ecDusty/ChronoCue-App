@@ -95,20 +95,18 @@ export function App() {
     if (agendaItems.length === 0) return
     stopCurrentSound()
     setAgendaIndex(0)
-    agendaTimer.setTime(agendaItems[0].durationSeconds)
     agendaEndHandled.current = false
-    setTimeout(() => agendaTimer.start(), 50)
-  }, [agendaItems, agendaTimer.setTime, agendaTimer.start])
+    agendaTimer.setTimeAndStart(agendaItems[0].durationSeconds)
+  }, [agendaItems, agendaTimer.setTimeAndStart])
 
   // Jump to a given agenda item and start it. Used by the Prev/Next buttons.
   const goToAgendaItem = useCallback((index: number) => {
     if (index < 0 || index >= agendaItems.length) return
     stopCurrentSound()
     setAgendaIndex(index)
-    agendaTimer.setTime(agendaItems[index].durationSeconds)
     agendaEndHandled.current = false
-    setTimeout(() => agendaTimer.start(), 50)
-  }, [agendaItems, agendaTimer.setTime, agendaTimer.start])
+    agendaTimer.setTimeAndStart(agendaItems[index].durationSeconds)
+  }, [agendaItems, agendaTimer.setTimeAndStart])
 
   const advanceAgenda = useCallback(() => goToAgendaItem(agendaIndex + 1), [goToAgendaItem, agendaIndex])
   const previousAgenda = useCallback(() => goToAgendaItem(agendaIndex - 1), [goToAgendaItem, agendaIndex])
