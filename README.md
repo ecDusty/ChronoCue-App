@@ -53,8 +53,11 @@ live/               # production build output (served by server.cjs)
 - [ ] **Total agenda time tracking with over/under display**
   Track the scheduled total duration (sum of all item durations) vs. actual elapsed time. Show a running delta during the agenda (e.g. "+0:32 over") and a summary when the agenda ends. Also track per-item over/under for a post-run breakdown.
 
+### Internationalization
+- [x] **Multi-language support (17 languages)**
+  Every UI string is resolved from a translation database via a lightweight custom i18n context (`src/i18n/`). A language selector (globe + active flag) sits left of the settings gear; the dropdown lists the other languages with their flag and native-script name. English is bundled as the source/fallback; the other 16 packs are **lazy-loaded** (one `~1.3 KB` chunk each, fetched only when selected). Flags are static SVGs in `public/flags/` rendered via `<img>`, so only the active flag loads at startup. The chosen language persists in `localStorage`. Languages: English (GB), 简体中文, 繁體中文, Español, Français, 日本語, 한국어, Tagalog, Tiếng Việt, Italiano, ไทย, Deutsch, Português, Te Reo Māori, Bahasa Melayu, हिन्दी, Русский. (Machine-translated — recommend native-speaker review.)
+
 ### Previously planned
-- [ ] Fix quick add button in Agenda mode
 - [ ] Low-time reminders (1 min, 2 min, 5 min, half-way) with sound and visual options
 - [x] Excel import for agenda items
   Import an agenda from `.xlsx`/`.xls`/`.csv` via the **Import** button in the agenda editor (column A = name, column B = duration; a header row is auto-skipped). Durations accept a number (minutes) or clock text (`mm:ss` / `h:mm:ss`). SheetJS is lazy-loaded (separate `xlsx.js` chunk), so the initial app load is unaffected.

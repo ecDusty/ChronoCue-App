@@ -5,6 +5,7 @@ import { FONT_OPTIONS } from '../hooks/useSettings'
 import { Toggle } from './Toggle'
 import { TimeSizeSelector } from './TimeSizeSelector'
 import { SoundSelector } from './SoundSelector'
+import { useT } from '../i18n/I18nProvider'
 
 interface Props {
   title?: string
@@ -17,8 +18,9 @@ interface Props {
   onClose: () => void
 }
 
-export function SettingsPanel({ title = 'Settings', settings, updateSetting, setBgImage, sounds, addSound, removeSound, onClose }: Props) {
+export function SettingsPanel({ title, settings, updateSetting, setBgImage, sounds, addSound, removeSound, onClose }: Props) {
   const bgFileRef = useRef<HTMLInputElement>(null)
+  const t = useT()
 
   return (
     <div
@@ -28,7 +30,7 @@ export function SettingsPanel({ title = 'Settings', settings, updateSetting, set
     >
       <div className="w-full max-w-md bg-[#1a1a1a] rounded-t-2xl sm:rounded-2xl p-6 space-y-5 max-h-[80vh] overflow-y-auto custom-scrollbar">
         <div className="flex items-center justify-between">
-          <h2 className="text-white text-lg font-semibold">{title}</h2>
+          <h2 className="text-white text-lg font-semibold">{title ?? t('settings.title')}</h2>
           <button
             className="touch-button p-2 rounded-lg hover:bg-white/10 text-white/60 transition-colors"
             onClick={onClose}
@@ -40,19 +42,19 @@ export function SettingsPanel({ title = 'Settings', settings, updateSetting, set
 
         {/* Timer Size */}
         <div className="space-y-2">
-          <label className="text-white/70 text-sm font-medium">Timer Size</label>
+          <label className="text-white/70 text-sm font-medium">{t('settings.timerSize')}</label>
           <TimeSizeSelector value={settings.timerSize} onChange={v => updateSetting('timerSize', v)} />
           <p className="text-white/30 text-xs">
-            {settings.timerSize === 'small' && 'Small — compact display'}
-            {settings.timerSize === 'medium' && 'Medium — balanced display'}
-            {settings.timerSize === 'large' && 'Large — fills most of the screen'}
-            {settings.timerSize === 'xlarge' && 'Extra Large — maximum visibility'}
+            {settings.timerSize === 'small' && t('settings.size.small')}
+            {settings.timerSize === 'medium' && t('settings.size.medium')}
+            {settings.timerSize === 'large' && t('settings.size.large')}
+            {settings.timerSize === 'xlarge' && t('settings.size.xlarge')}
           </p>
         </div>
 
         {/* Font Family */}
         <div className="space-y-2">
-          <label className="text-white/70 text-sm font-medium">Font Family</label>
+          <label className="text-white/70 text-sm font-medium">{t('settings.fontFamily')}</label>
           <select
             value={settings.fontFamily}
             onChange={e => updateSetting('fontFamily', e.target.value)}
@@ -62,7 +64,7 @@ export function SettingsPanel({ title = 'Settings', settings, updateSetting, set
           >
             {FONT_OPTIONS.map(f => (
               <option key={f.label} value={f.value} style={{ fontFamily: f.value, backgroundColor: '#1a1a1a', color: '#fff' }}>
-                {f.label}
+                {f.label === 'Default' ? t('settings.fontDefault') : f.label}
               </option>
             ))}
           </select>
@@ -70,7 +72,7 @@ export function SettingsPanel({ title = 'Settings', settings, updateSetting, set
 
         {/* Background Color */}
         <div className="space-y-2">
-          <label className="text-white/70 text-sm font-medium">Background Color</label>
+          <label className="text-white/70 text-sm font-medium">{t('settings.bgColor')}</label>
           <div className="flex items-center gap-3">
             <input
               type="color"
@@ -85,14 +87,14 @@ export function SettingsPanel({ title = 'Settings', settings, updateSetting, set
 
         {/* Background Image */}
         <div className="space-y-2">
-          <label className="text-white/70 text-sm font-medium">Background Image</label>
+          <label className="text-white/70 text-sm font-medium">{t('settings.bgImage')}</label>
           <div className="flex items-center gap-3">
             <button
               className="touch-button px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors"
               onClick={() => bgFileRef.current?.click()}
               data-testid="button-upload-bg"
             >
-              {settings.bgImage ? 'Change Image' : 'Upload Image'}
+              {settings.bgImage ? t('settings.changeImage') : t('settings.uploadImage')}
             </button>
             {settings.bgImage && (
               <button
@@ -100,7 +102,7 @@ export function SettingsPanel({ title = 'Settings', settings, updateSetting, set
                 onClick={() => setBgImage(null)}
                 data-testid="button-remove-bg"
               >
-                Remove
+                {t('common.remove')}
               </button>
             )}
           </div>
@@ -118,7 +120,7 @@ export function SettingsPanel({ title = 'Settings', settings, updateSetting, set
 
         {/* Font Color */}
         <div className="space-y-2">
-          <label className="text-white/70 text-sm font-medium">Timer Font Color</label>
+          <label className="text-white/70 text-sm font-medium">{t('settings.fontColor')}</label>
           <div className="flex items-center gap-3">
             <input
               type="color"
@@ -134,8 +136,8 @@ export function SettingsPanel({ title = 'Settings', settings, updateSetting, set
         {/* Gong Sound */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-white text-sm font-medium">Gong Sound</p>
-            <p className="text-white/40 text-xs">Play a sound when timer ends</p>
+            <p className="text-white text-sm font-medium">{t('settings.gongSound')}</p>
+            <p className="text-white/40 text-xs">{t('settings.gongSoundDesc')}</p>
           </div>
           <Toggle enabled={settings.playGong} onToggle={() => updateSetting('playGong', !settings.playGong)} testId="toggle-gong" />
         </div>
@@ -155,8 +157,8 @@ export function SettingsPanel({ title = 'Settings', settings, updateSetting, set
         {/* Fade Effect */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-white text-sm font-medium">Fade Effect</p>
-            <p className="text-white/40 text-xs">Timer fades in/out when ended</p>
+            <p className="text-white text-sm font-medium">{t('settings.fadeEffect')}</p>
+            <p className="text-white/40 text-xs">{t('settings.fadeEffectDesc')}</p>
           </div>
           <Toggle enabled={settings.fadeEffect} onToggle={() => updateSetting('fadeEffect', !settings.fadeEffect)} testId="toggle-fade" />
         </div>
@@ -164,8 +166,8 @@ export function SettingsPanel({ title = 'Settings', settings, updateSetting, set
         {/* Over Time */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-white text-sm font-medium">Over Time</p>
-            <p className="text-white/40 text-xs">Show how much over time after timer ends</p>
+            <p className="text-white text-sm font-medium">{t('settings.overTime')}</p>
+            <p className="text-white/40 text-xs">{t('settings.overTimeDesc')}</p>
           </div>
           <Toggle enabled={settings.showOvertime} onToggle={() => updateSetting('showOvertime', !settings.showOvertime)} testId="toggle-overtime" />
         </div>

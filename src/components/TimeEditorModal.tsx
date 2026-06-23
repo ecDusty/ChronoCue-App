@@ -1,6 +1,7 @@
 import { X } from 'lucide-react'
 import { TimeInput } from './TimeInput'
 import { parseSeconds } from '../utils/time'
+import { useT } from '../i18n/I18nProvider'
 
 interface Props {
   onSet: (seconds: number) => void
@@ -11,6 +12,7 @@ interface Props {
 
 export function TimeEditorModal({ onSet, onClose, initialSeconds, initialFocus }: Props) {
   const { hours, minutes, secs } = parseSeconds(initialSeconds)
+  const t = useT()
 
   return (
     <div
@@ -20,7 +22,7 @@ export function TimeEditorModal({ onSet, onClose, initialSeconds, initialFocus }
     >
       <div className="bg-[#1a1a1a] rounded-2xl p-6 max-w-lg w-full mx-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-white text-lg font-semibold">Set Timer</h2>
+          <h2 className="text-white text-lg font-semibold">{t('timeInput.setTimer')}</h2>
           <button
             className="touch-button p-2 rounded-lg hover:bg-white/10 text-white/60 transition-colors"
             onClick={onClose}

@@ -5,6 +5,7 @@ import { parseSeconds } from '../utils/time'
 import { parseAgendaFile } from '../utils/agendaImport'
 import { Toggle } from './Toggle'
 import { SoundSelector } from './SoundSelector'
+import { useT } from '../i18n/I18nProvider'
 
 interface Props {
   items: AgendaItem[]
@@ -32,6 +33,7 @@ function OverrideBoolRow({ label, globalValue, value, onChange }: {
   value: boolean | undefined
   onChange: (v: boolean | undefined) => void
 }) {
+  const t = useT()
   const overriding = value !== undefined
   return (
     <div className="flex items-center justify-between gap-3">
@@ -47,7 +49,9 @@ function OverrideBoolRow({ label, globalValue, value, onChange }: {
       {overriding ? (
         <Toggle enabled={value} onToggle={() => onChange(!value)} />
       ) : (
-        <span className="text-white/30 text-xs">Using global ({globalValue ? 'On' : 'Off'})</span>
+        <span className="text-white/30 text-xs">
+          {t('agenda.usingGlobal', { state: globalValue ? t('common.on') : t('common.off') })}
+        </span>
       )}
     </div>
   )
@@ -59,6 +63,7 @@ export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
   const importRef = useRef<HTMLInputElement>(null)
+  const t = useT()
 
   const handleImport = async (file: File | null) => {
     if (importRef.current) importRef.current.value = ''
@@ -68,13 +73,13 @@ export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings
     try {
       const imported = await parseAgendaFile(file)
       if (imported.length === 0) {
-        setImportError('No valid rows found — use column A = name, column B = duration.')
+        setImportError(t('agenda.importErrorNoRows'))
       } else {
         setDraft(imported) // replace current items
         setExpandedId(null)
       }
     } catch {
-      setImportError('Could not read that file. Supported types: .xlsx, .xls, .csv')
+      setImportError(t('agenda.importErrorRead'))
     } finally {
       setImporting(false)
     }
@@ -136,7 +141,7 @@ export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings
     >
       <div className="w-full max-w-lg bg-[#1a1a1a] rounded-t-2xl sm:rounded-2xl p-6 max-h-[85vh] flex flex-col">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-white text-lg font-semibold">Edit Agenda</h2>
+          <h2 className="text-white text-lg font-semibold">{t('agenda.editTitle')}</h2>
           <button
             className="touch-button p-2 rounded-lg hover:bg-white/10 text-white/60 transition-colors"
             onClick={onClose}
@@ -151,7 +156,7 @@ export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings
           data-testid="button-agenda-global-settings"
         >
           <Settings size={14} />
-          Agenda Settings
+          {t('agenda.settingsButton')}
         </button>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 mb-4">
@@ -183,16 +188,16 @@ export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings
                   <div className="flex-1 min-w-0 space-y-2">
                     <input
                       type="text"
-                      placeholder="Item name"
+                      placeholder={t('agenda.itemName')}
                       value={item.name}
                       onChange={e => updateItem(item.id, 'name', e.target.value)}
                       className="w-full px-3 py-1.5 rounded-lg bg-white/10 border border-white/15 text-white text-sm placeholder:text-white/30 outline-none focus:ring-1 focus:ring-teal-500/50"
                     />
                     <div className="flex items-center gap-1.5">
                       {[
-                        { val: h, ph: 'Hr',  max: 99,  key: 'h' },
-                        { val: m, ph: 'Min', max: 59,  key: 'm' },
-                        { val: s, ph: 'Sec', max: 59,  key: 's' },
+                        { val: h, ph: t('agenda.hr'),  max: 99,  key: 'h' },
+                        { val: m, ph: t('agenda.min'), max: 59,  key: 'm' },
+                        { val: s, ph: t('agenda.sec'), max: 59,  key: 's' },
                       ].map(({ val, ph, max, key }, idx) => (
                         <span key={key} className="flex items-center gap-1">
                           {idx > 0 && <span className="text-white/30 text-xs">:</span>}
@@ -216,7 +221,7 @@ export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings
                   <button
                     className={`p-2 rounded-lg hover:bg-white/10 transition-colors shrink-0 ${hasOverrides ? 'text-teal-400' : 'text-white/30 hover:text-white/60'}`}
                     onClick={() => setExpandedId(expanded ? null : item.id)}
-                    title="Per-item settings"
+                    title={t('agenda.perItemSettings')}
                     data-testid={`button-item-settings-${item.id}`}
                   >
                     <SlidersHorizontal size={15} />
@@ -233,13 +238,13 @@ export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings
                 {expanded && (
                   <div className="border-t border-white/10 pt-3 space-y-3" data-testid={`item-settings-${item.id}`}>
                     <OverrideBoolRow
-                      label="Show overtime"
+                      label={t('agenda.showOvertime')}
                       globalValue={settings.showOvertime}
                       value={ov?.showOvertime}
                       onChange={v => setOverride(item.id, 'showOvertime', v)}
                     />
                     <OverrideBoolRow
-                      label="Fade / blink"
+                      label={t('agenda.fadeBlink')}
                       globalValue={settings.fadeEffect}
                       value={ov?.fadeEffect}
                       onChange={v => setOverride(item.id, 'fadeEffect', v)}
@@ -255,12 +260,14 @@ export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings
                             onChange={e => toggleGongOverride(item.id, e.target.checked)}
                             className="w-4 h-4 accent-teal-500"
                           />
-                          <span className="text-white/70 text-sm">Gong</span>
+                          <span className="text-white/70 text-sm">{t('agenda.gong')}</span>
                         </label>
                         {ov?.playGong !== undefined ? (
                           <Toggle enabled={ov.playGong} onToggle={() => setOverride(item.id, 'playGong', !ov.playGong)} />
                         ) : (
-                          <span className="text-white/30 text-xs">Using global ({settings.playGong ? 'On' : 'Off'})</span>
+                          <span className="text-white/30 text-xs">
+                            {t('agenda.usingGlobal', { state: settings.playGong ? t('common.on') : t('common.off') })}
+                          </span>
                         )}
                       </div>
                       {ov?.playGong && (
@@ -290,17 +297,17 @@ export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings
               onClick={addItem}
               data-testid="button-add-agenda-item"
             >
-              + Add Item
+              {t('agenda.addItem')}
             </button>
             <button
               className="touch-button flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 text-sm font-medium transition-colors disabled:opacity-50 shrink-0"
               onClick={() => importRef.current?.click()}
               disabled={importing}
-              title="Import items from a spreadsheet (column A = name, B = duration). Replaces the current list."
+              title={t('agenda.importTitle')}
               data-testid="button-import-agenda"
             >
               <FileUp size={14} />
-              {importing ? 'Importing…' : 'Import'}
+              {importing ? t('agenda.importing') : t('agenda.import')}
             </button>
             <input
               ref={importRef}
@@ -311,7 +318,7 @@ export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings
               data-testid="input-import-agenda"
             />
             {draft.length > 0 && (
-              <span className="text-white/30 text-xs truncate">{totalMinutes} min total</span>
+              <span className="text-white/30 text-xs truncate">{t('agenda.minTotal', { minutes: totalMinutes })}</span>
             )}
           </div>
           <button
@@ -319,7 +326,7 @@ export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings
             onClick={save}
             data-testid="button-save-agenda"
           >
-            Save
+            {t('agenda.save')}
           </button>
         </div>
       </div>

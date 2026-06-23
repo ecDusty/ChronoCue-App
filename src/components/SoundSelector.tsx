@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { X, ChevronDown, ChevronUp } from 'lucide-react'
 import type { SoundClip } from '../types'
 import { DEFAULT_GONG_ID } from '../hooks/useSettings'
+import { useT } from '../i18n/I18nProvider'
 
 interface Props {
   sounds: SoundClip[]
@@ -14,6 +15,7 @@ interface Props {
 export function SoundSelector({ sounds, selectedId, onSelect, onUpload, onRemove }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [open, setOpen] = useState(false)
+  const t = useT()
   // Coerce a dangling reference (clip removed from the library) back to the default.
   const value = selectedId === DEFAULT_GONG_ID || sounds.some(s => s.id === selectedId)
     ? selectedId
@@ -33,7 +35,7 @@ export function SoundSelector({ sounds, selectedId, onSelect, onUpload, onRemove
             data-testid="select-gong-sound"
           >
             <option value={DEFAULT_GONG_ID} style={{ backgroundColor: '#1a1a1a', color: '#fff' }}>
-              Default Gong
+              {t('sound.defaultGong')}
             </option>
             {sounds.map(s => (
               <option key={s.id} value={s.id} style={{ backgroundColor: '#1a1a1a', color: '#fff' }}>
@@ -49,7 +51,7 @@ export function SoundSelector({ sounds, selectedId, onSelect, onUpload, onRemove
           <button
             className="touch-button p-2 rounded-lg hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-colors shrink-0"
             onClick={() => onRemove?.(value)}
-            title="Remove this sound from the library"
+            title={t('sound.removeTitle')}
             data-testid="button-remove-sound"
           >
             <X size={16} />
@@ -62,7 +64,7 @@ export function SoundSelector({ sounds, selectedId, onSelect, onUpload, onRemove
         onClick={() => fileRef.current?.click()}
         data-testid="button-upload-sound"
       >
-        Upload sound
+        {t('sound.upload')}
       </button>
       <input
         ref={fileRef}

@@ -1,6 +1,7 @@
 import { Minus, Plus } from 'lucide-react'
 import type { TimerStatus } from '../types'
-import { formatDuration, getAddStep } from '../utils/time'
+import { getAddStep } from '../utils/time'
+import { useDurationFormat } from '../i18n/useDurationFormat'
 
 interface Props {
   remaining: number
@@ -9,8 +10,9 @@ interface Props {
 }
 
 export function TimeAdjust({ remaining, onAdd, status }: Props) {
+  const fmt = useDurationFormat()
   const step = getAddStep(remaining)
-  const label = formatDuration(step)
+  const label = fmt(step)
 
   return (
     <div className="flex items-center gap-2" data-testid="time-adjuster">

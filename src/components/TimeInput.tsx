@@ -1,16 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import { useT } from '../i18n/I18nProvider'
+import { useDurationFormat } from '../i18n/useDurationFormat'
 
-const PRESETS = [
-  { label: '1 min',  seconds: 60 },
-  { label: '2 min',  seconds: 120 },
-  { label: '5 min',  seconds: 300 },
-  { label: '10 min', seconds: 600 },
-  { label: '15 min', seconds: 900 },
-  { label: '20 min', seconds: 1200 },
-  { label: '30 min', seconds: 1800 },
-  { label: '45 min', seconds: 2700 },
-  { label: '1 hour', seconds: 3600 },
-]
+const PRESET_SECONDS = [60, 120, 300, 600, 900, 1200, 1800, 2700, 3600]
 
 const INPUT_CLASS =
   'w-20 px-3 py-2.5 rounded-lg bg-white/15 border border-white/25 text-white text-center text-base placeholder:text-white/40 outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50 transition-colors'
@@ -28,6 +20,8 @@ interface Props {
 }
 
 export function TimeInput({ onSet, initialValues, initialFocus }: Props) {
+  const t = useT()
+  const fmt = useDurationFormat()
   const [hours, setHours] = useState(initialValues && initialValues.hours > 0 ? String(initialValues.hours) : '')
   const [minutes, setMinutes] = useState(initialValues ? String(initialValues.minutes) : '')
   const [seconds, setSeconds] = useState(initialValues ? String(initialValues.seconds) : '')
@@ -52,17 +46,17 @@ export function TimeInput({ onSet, initialValues, initialFocus }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-4" data-testid="time-picker">
-      <p className="text-white/60 text-sm font-medium uppercase tracking-wider">Set Timer</p>
+      <p className="text-white/60 text-sm font-medium uppercase tracking-wider">{t('timeInput.setTimer')}</p>
 
       <div className="flex flex-wrap justify-center gap-2 max-w-lg">
-        {PRESETS.map(p => (
+        {PRESET_SECONDS.map(secs => (
           <button
-            key={p.label}
+            key={secs}
             className="touch-button px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/25 transition-colors text-white font-medium text-base"
-            onClick={() => onSet(p.seconds)}
-            data-testid={`button-preset-${p.seconds}`}
+            onClick={() => onSet(secs)}
+            data-testid={`button-preset-${secs}`}
           >
-            {p.label}
+            {fmt(secs)}
           </button>
         ))}
       </div>
@@ -71,7 +65,7 @@ export function TimeInput({ onSet, initialValues, initialFocus }: Props) {
         <input
           ref={hoursRef}
           type="number"
-          placeholder="Hr"
+          placeholder={t('timeInput.hr')}
           min={0}
           max={99}
           value={hours}
@@ -83,7 +77,7 @@ export function TimeInput({ onSet, initialValues, initialFocus }: Props) {
         <input
           ref={minutesRef}
           type="number"
-          placeholder="Min"
+          placeholder={t('timeInput.min')}
           min={0}
           max={59}
           value={minutes}
@@ -95,7 +89,7 @@ export function TimeInput({ onSet, initialValues, initialFocus }: Props) {
         <input
           ref={secondsRef}
           type="number"
-          placeholder="Sec"
+          placeholder={t('timeInput.sec')}
           min={0}
           max={59}
           value={seconds}
@@ -108,7 +102,7 @@ export function TimeInput({ onSet, initialValues, initialFocus }: Props) {
           onClick={handleSet}
           data-testid="button-custom-set"
         >
-          Set
+          {t('timeInput.set')}
         </button>
       </div>
     </div>

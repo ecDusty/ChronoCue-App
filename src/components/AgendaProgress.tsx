@@ -1,5 +1,6 @@
 import type { AgendaItem } from '../types'
-import { formatDuration } from '../utils/time'
+import { useT } from '../i18n/I18nProvider'
+import { useDurationFormat } from '../i18n/useDurationFormat'
 
 interface Props {
   items: AgendaItem[]
@@ -8,6 +9,8 @@ interface Props {
 }
 
 export function AgendaProgress({ items, currentIndex, currentRemaining }: Props) {
+  const t = useT()
+  const fmt = useDurationFormat()
   if (items.length === 0) return null
 
   const current = items[currentIndex]
@@ -17,7 +20,7 @@ export function AgendaProgress({ items, currentIndex, currentRemaining }: Props)
     <div className="w-full max-w-lg px-2 pt-2 pb-1" data-testid="agenda-progress">
       <div className="flex items-center justify-between mb-1">
         <span className="text-white/80 text-sm font-medium truncate pr-4">
-          {current?.name || `Item ${currentIndex + 1}`}
+          {current?.name || t('agendaProgress.itemFallback', { number: currentIndex + 1 })}
         </span>
         <span className="text-white/50 text-xs shrink-0">
           {currentIndex + 1} / {items.length}
@@ -37,7 +40,10 @@ export function AgendaProgress({ items, currentIndex, currentRemaining }: Props)
 
       {next && (
         <p className="text-white/35 text-xs truncate">
-          Next: {next.name || `Item ${currentIndex + 2}`} — {formatDuration(next.durationSeconds)}
+          {t('agendaProgress.next', {
+            name: next.name || t('agendaProgress.itemFallback', { number: currentIndex + 2 }),
+            duration: fmt(next.durationSeconds),
+          })}
         </p>
       )}
     </div>

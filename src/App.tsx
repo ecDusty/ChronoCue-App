@@ -12,6 +12,8 @@ import { AgendaProgress } from './components/AgendaProgress'
 import { AgendaEditor } from './components/AgendaEditor'
 import { SettingsPanel } from './components/SettingsPanel'
 import { ModeSwitchModal } from './components/ModeSwitchModal'
+import { LanguageSelector } from './components/LanguageSelector'
+import { useT } from './i18n/I18nProvider'
 
 import type { AgendaItem, TimerMode } from './types'
 
@@ -42,6 +44,7 @@ export function App() {
   const { remaining, totalSeconds, status, start, pause, reset, setTime, addTime, overtimeSeconds } = timer
   const activeSettings = mode === 'simple' ? simpleSettings : agendaSettings
   const { settings, updateSetting, setBgImage } = activeSettings
+  const t = useT()
 
   // Per-item remaining time (seconds), keyed by item id, so navigating away from
   // an item and back restores its paused progress. `agendaLiveRemaining` mirrors
@@ -183,6 +186,7 @@ export function App() {
       '[data-testid="set-timer-overlay"]',
       '[data-testid="time-picker"]',
       '[data-testid="mode-switch-modal"]',
+      '[data-testid="language-selector"]',
     ]
     if (interactive.some(sel => target.closest(sel))) return
 
@@ -215,8 +219,8 @@ export function App() {
     >
       {settings.bgImage && <div className="absolute inset-0 bg-black/40" />}
 
-      {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-4 py-3">
+      {/* Header (z-30 so the language dropdown sits above the z-10 main content) */}
+      <header className="relative z-30 flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-0.5 bg-white/5 rounded-lg p-0.5">
           <button
             className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${
@@ -226,7 +230,7 @@ export function App() {
             data-testid="button-mode-simple"
           >
             <Timer size={11} />
-            Simple
+            {t('mode.simple')}
           </button>
           <button
             className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${
@@ -236,7 +240,7 @@ export function App() {
             data-testid="button-mode-agenda"
           >
             <List size={11} />
-            Agenda
+            {t('mode.agenda')}
           </button>
         </div>
 
@@ -250,6 +254,9 @@ export function App() {
               <List size={13} />
             </button>
           )}
+          <div className="mr-8">
+            <LanguageSelector />
+          </div>
           <button
             className="flex items-center justify-center w-14 h-14 rounded-xl bg-white/5 hover:bg-white/15 text-teal-400/40 hover:text-teal-300/70 transition-colors"
             onClick={() => setShowSettings(true)}
@@ -273,13 +280,13 @@ export function App() {
         ) : mode === 'agenda' && agendaItems.length === 0 ? (
           <div className="flex-1 flex items-center justify-center w-full">
             <div className="flex flex-col items-center gap-4">
-              <p className="text-white/50 text-lg">No agenda items yet</p>
+              <p className="text-white/50 text-lg">{t('controls.noAgendaItems')}</p>
               <button
                 className="touch-button px-6 py-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-medium text-base transition-colors"
                 onClick={() => setShowAgendaEditor(true)}
                 data-testid="button-create-agenda"
               >
-                Create Agenda
+                {t('controls.createAgenda')}
               </button>
             </div>
           </div>
@@ -312,7 +319,7 @@ export function App() {
                     data-testid="button-prev-item"
                   >
                     <SkipBack size={14} />
-                    Prev
+                    {t('controls.prev')}
                   </button>
                 )}
                 {status === 'idle' && remaining > 0 && (
@@ -322,7 +329,7 @@ export function App() {
                     data-testid="button-start"
                   >
                     <Play size={14} />
-                    Start
+                    {t('controls.start')}
                   </button>
                 )}
                 {status === 'running' && (
@@ -332,7 +339,7 @@ export function App() {
                     data-testid="button-pause"
                   >
                     <Pause size={14} />
-                    Pause
+                    {t('controls.pause')}
                   </button>
                 )}
                 {status === 'paused' && (
@@ -342,7 +349,7 @@ export function App() {
                     data-testid="button-resume"
                   >
                     <Play size={14} />
-                    Resume
+                    {t('controls.resume')}
                   </button>
                 )}
                 {((mode === 'simple' && (status === 'paused' || status === 'ended')) || agendaNavVisible) && (
@@ -352,7 +359,7 @@ export function App() {
                     data-testid="button-reset"
                   >
                     <RotateCcw size={13} />
-                    Reset
+                    {t('controls.reset')}
                   </button>
                 )}
                 {agendaNavVisible && agendaIndex < agendaItems.length - 1 && (
@@ -362,7 +369,7 @@ export function App() {
                     data-testid="button-next-item"
                   >
                     <SkipForward size={14} />
-                    Next
+                    {t('controls.next')}
                   </button>
                 )}
                 {status === 'idle' && remaining > 0 && mode === 'simple' && (
@@ -371,7 +378,7 @@ export function App() {
                     onClick={() => setTime(0)}
                     data-testid="button-clear"
                   >
-                    Clear
+                    {t('controls.clear')}
                   </button>
                 )}
               </div>
@@ -383,7 +390,7 @@ export function App() {
                   data-testid="button-start-agenda"
                 >
                   <Play size={14} />
-                  Start Agenda
+                  {t('controls.startAgenda')}
                 </button>
               )}
             </div>
@@ -412,7 +419,7 @@ export function App() {
 
       {showSettings && (
         <SettingsPanel
-          title={mode === 'agenda' ? 'Agenda Settings' : 'Simple Settings'}
+          title={mode === 'agenda' ? t('settings.titleAgenda') : t('settings.titleSimple')}
           settings={settings}
           updateSetting={updateSetting}
           setBgImage={setBgImage}
