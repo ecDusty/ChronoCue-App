@@ -56,6 +56,7 @@ live/               # production build output (served by server.cjs)
 ### Previously planned
 - [ ] Fix quick add button in Agenda mode
 - [ ] Low-time reminders (1 min, 2 min, 5 min, half-way) with sound and visual options
-- [ ] Excel import for agenda items
+- [x] Excel import for agenda items
+  Import an agenda from `.xlsx`/`.xls`/`.csv` via the **Import** button in the agenda editor (column A = name, column B = duration; a header row is auto-skipped). Durations accept a number (minutes) or clock text (`mm:ss` / `h:mm:ss`). SheetJS is lazy-loaded (separate `xlsx.js` chunk), so the initial app load is unaffected.
 - [x] Sound options dropdown for end noise
   Uploaded audio files accumulate into a reusable sound library; the gong sound is chosen from a dropdown (Default Gong + uploaded clips) for the global/simple gong and per agenda item.

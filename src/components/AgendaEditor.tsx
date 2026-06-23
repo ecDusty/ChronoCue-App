@@ -1,7 +1,8 @@
-import { useState } from 'react'
-import { X, ChevronUp, ChevronDown, Trash2, SlidersHorizontal, Settings } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { X, ChevronUp, ChevronDown, Trash2, SlidersHorizontal, Settings, FileUp } from 'lucide-react'
 import type { AgendaItem, AgendaItemOverrides, AppSettings, SoundClip } from '../types'
 import { parseSeconds } from '../utils/time'
+import { parseAgendaFile } from '../utils/agendaImport'
 import { Toggle } from './Toggle'
 import { SoundSelector } from './SoundSelector'
 
@@ -55,6 +56,29 @@ function OverrideBoolRow({ label, globalValue, value, onChange }: {
 export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings, onUpdate, onClose }: Props) {
   const [draft, setDraft] = useState<AgendaItem[]>(items)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [importing, setImporting] = useState(false)
+  const [importError, setImportError] = useState<string | null>(null)
+  const importRef = useRef<HTMLInputElement>(null)
+
+  const handleImport = async (file: File | null) => {
+    if (importRef.current) importRef.current.value = ''
+    if (!file) return
+    setImporting(true)
+    setImportError(null)
+    try {
+      const imported = await parseAgendaFile(file)
+      if (imported.length === 0) {
+        setImportError('No valid rows found — use column A = name, column B = duration.')
+      } else {
+        setDraft(imported) // replace current items
+        setExpandedId(null)
+      }
+    } catch {
+      setImportError('Could not read that file. Supported types: .xlsx, .xls, .csv')
+    } finally {
+      setImporting(false)
+    }
+  }
 
   const addItem = () => {
     setDraft(prev => [...prev, { id: crypto.randomUUID(), name: '', durationSeconds: 300 }])
@@ -255,21 +279,43 @@ export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings
           })}
         </div>
 
+        {importError && (
+          <p className="text-red-400/90 text-xs mb-2" data-testid="import-error">{importError}</p>
+        )}
+
         <div className="flex items-center justify-between gap-3 pt-2 border-t border-white/10">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 min-w-0">
             <button
-              className="touch-button flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors"
+              className="touch-button flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors shrink-0"
               onClick={addItem}
               data-testid="button-add-agenda-item"
             >
               + Add Item
             </button>
+            <button
+              className="touch-button flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 text-sm font-medium transition-colors disabled:opacity-50 shrink-0"
+              onClick={() => importRef.current?.click()}
+              disabled={importing}
+              title="Import items from a spreadsheet (column A = name, B = duration). Replaces the current list."
+              data-testid="button-import-agenda"
+            >
+              <FileUp size={14} />
+              {importing ? 'Importing…' : 'Import'}
+            </button>
+            <input
+              ref={importRef}
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              className="hidden"
+              onChange={e => handleImport(e.target.files?.[0] ?? null)}
+              data-testid="input-import-agenda"
+            />
             {draft.length > 0 && (
-              <span className="text-white/30 text-xs">{totalMinutes} min total</span>
+              <span className="text-white/30 text-xs truncate">{totalMinutes} min total</span>
             )}
           </div>
           <button
-            className="touch-button px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-sm transition-colors"
+            className="touch-button px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-sm transition-colors shrink-0"
             onClick={save}
             data-testid="button-save-agenda"
           >
