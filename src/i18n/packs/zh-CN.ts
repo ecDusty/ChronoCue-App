@@ -1,7 +1,7 @@
 import type { Translations } from '../types'
 
 const zhCN: Translations = {
-  'mode.simple': '简单',
+  'mode.simple': '计时器',
   'mode.agenda': '议程',
 
   'controls.start': '开始',
@@ -23,7 +23,7 @@ const zhCN: Translations = {
   'unit.sec': '秒',
 
   'settings.title': '设置',
-  'settings.titleSimple': '简单设置',
+  'settings.titleSimple': '计时器设置',
   'settings.titleAgenda': '议程设置',
   'settings.timerSize': '计时器大小',
   'settings.size.small': '小 — 紧凑显示',

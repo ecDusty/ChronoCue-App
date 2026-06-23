@@ -1,7 +1,7 @@
 import type { Translations } from '../types'
 
 const it: Translations = {
-  'mode.simple': 'Semplice',
+  'mode.simple': 'Timer',
   'mode.agenda': 'Agenda',
 
   'controls.start': 'Avvia',
@@ -23,7 +23,7 @@ const it: Translations = {
   'unit.sec': 's',
 
   'settings.title': 'Impostazioni',
-  'settings.titleSimple': 'Impostazioni Semplice',
+  'settings.titleSimple': 'Impostazioni Timer',
   'settings.titleAgenda': 'Impostazioni Agenda',
   'settings.timerSize': 'Dimensione del timer',
   'settings.size.small': 'Piccolo — visualizzazione compatta',

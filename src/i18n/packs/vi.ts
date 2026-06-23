@@ -1,7 +1,7 @@
 import type { Translations } from '../types'
 
 const vi: Translations = {
-  'mode.simple': 'Đơn giản',
+  'mode.simple': 'Bộ đếm',
   'mode.agenda': 'Lịch trình',
 
   'controls.start': 'Bắt đầu',
@@ -23,7 +23,7 @@ const vi: Translations = {
   'unit.sec': 'giây',
 
   'settings.title': 'Cài đặt',
-  'settings.titleSimple': 'Cài đặt Đơn giản',
+  'settings.titleSimple': 'Cài đặt Bộ đếm',
   'settings.titleAgenda': 'Cài đặt Lịch trình',
   'settings.timerSize': 'Kích thước bộ đếm',
   'settings.size.small': 'Nhỏ — hiển thị gọn',

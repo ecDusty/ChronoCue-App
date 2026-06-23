@@ -1,7 +1,7 @@
 import type { Translations } from '../types'
 
 const zhHK: Translations = {
-  'mode.simple': '簡單',
+  'mode.simple': '計時器',
   'mode.agenda': '議程',
 
   'controls.start': '開始',
@@ -23,7 +23,7 @@ const zhHK: Translations = {
   'unit.sec': '秒',
 
   'settings.title': '設定',
-  'settings.titleSimple': '簡單設定',
+  'settings.titleSimple': '計時器設定',
   'settings.titleAgenda': '議程設定',
   'settings.timerSize': '計時器大小',
   'settings.size.small': '小 — 精簡顯示',

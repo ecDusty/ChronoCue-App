@@ -1,7 +1,7 @@
 import type { Translations } from '../types'
 
 const tl: Translations = {
-  'mode.simple': 'Simple',
+  'mode.simple': 'Timer',
   'mode.agenda': 'Agenda',
 
   'controls.start': 'Simulan',
@@ -23,7 +23,7 @@ const tl: Translations = {
   'unit.sec': 'seg',
 
   'settings.title': 'Mga Setting',
-  'settings.titleSimple': 'Mga Setting ng Simple',
+  'settings.titleSimple': 'Mga Setting ng Timer',
   'settings.titleAgenda': 'Mga Setting ng Agenda',
   'settings.timerSize': 'Laki ng timer',
   'settings.size.small': 'Maliit — compact na display',

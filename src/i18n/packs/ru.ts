@@ -1,7 +1,7 @@
 import type { Translations } from '../types'
 
 const ru: Translations = {
-  'mode.simple': 'Простой',
+  'mode.simple': 'Таймер',
   'mode.agenda': 'Повестка',
 
   'controls.start': 'Старт',
@@ -23,7 +23,7 @@ const ru: Translations = {
   'unit.sec': 'с',
 
   'settings.title': 'Настройки',
-  'settings.titleSimple': 'Настройки: Простой',
+  'settings.titleSimple': 'Настройки: Таймер',
   'settings.titleAgenda': 'Настройки: Повестка',
   'settings.timerSize': 'Размер таймера',
   'settings.size.small': 'Маленький — компактный вид',

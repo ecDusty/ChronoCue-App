@@ -1,7 +1,7 @@
 import type { Translations } from '../types'
 
 const th: Translations = {
-  'mode.simple': 'เรียบง่าย',
+  'mode.simple': 'ตัวจับเวลา',
   'mode.agenda': 'กำหนดการ',
 
   'controls.start': 'เริ่ม',
@@ -23,7 +23,7 @@ const th: Translations = {
   'unit.sec': 'วิ',
 
   'settings.title': 'การตั้งค่า',
-  'settings.titleSimple': 'การตั้งค่าแบบเรียบง่าย',
+  'settings.titleSimple': 'การตั้งค่าตัวจับเวลา',
   'settings.titleAgenda': 'การตั้งค่ากำหนดการ',
   'settings.timerSize': 'ขนาดตัวจับเวลา',
   'settings.size.small': 'เล็ก — แสดงแบบกะทัดรัด',

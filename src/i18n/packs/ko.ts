@@ -1,7 +1,7 @@
 import type { Translations } from '../types'
 
 const ko: Translations = {
-  'mode.simple': '심플',
+  'mode.simple': '타이머',
   'mode.agenda': '어젠다',
 
   'controls.start': '시작',
@@ -23,7 +23,7 @@ const ko: Translations = {
   'unit.sec': '초',
 
   'settings.title': '설정',
-  'settings.titleSimple': '심플 설정',
+  'settings.titleSimple': '타이머 설정',
   'settings.titleAgenda': '어젠다 설정',
   'settings.timerSize': '타이머 크기',
   'settings.size.small': '작게 — 간결한 표시',

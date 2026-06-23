@@ -1,7 +1,7 @@
 import type { Translations } from '../types'
 
 const ms: Translations = {
-  'mode.simple': 'Ringkas',
+  'mode.simple': 'Pemasa',
   'mode.agenda': 'Agenda',
 
   'controls.start': 'Mula',
@@ -23,7 +23,7 @@ const ms: Translations = {
   'unit.sec': 's',
 
   'settings.title': 'Tetapan',
-  'settings.titleSimple': 'Tetapan Ringkas',
+  'settings.titleSimple': 'Tetapan Pemasa',
   'settings.titleAgenda': 'Tetapan Agenda',
   'settings.timerSize': 'Saiz pemasa',
   'settings.size.small': 'Kecil — paparan padat',

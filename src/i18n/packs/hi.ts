@@ -1,7 +1,7 @@
 import type { Translations } from '../types'
 
 const hi: Translations = {
-  'mode.simple': 'सरल',
+  'mode.simple': 'टाइमर',
   'mode.agenda': 'एजेंडा',
 
   'controls.start': 'शुरू करें',
@@ -23,7 +23,7 @@ const hi: Translations = {
   'unit.sec': 'से',
 
   'settings.title': 'सेटिंग्स',
-  'settings.titleSimple': 'सरल सेटिंग्स',
+  'settings.titleSimple': 'टाइमर सेटिंग्स',
   'settings.titleAgenda': 'एजेंडा सेटिंग्स',
   'settings.timerSize': 'टाइमर का आकार',
   'settings.size.small': 'छोटा — संक्षिप्त प्रदर्शन',

@@ -2,7 +2,7 @@
 // is typed against these keys, so a missing key fails the TypeScript build.
 export const en = {
   // Mode toggle
-  'mode.simple': 'Simple',
+  'mode.simple': 'Timer',
   'mode.agenda': 'Agenda',
 
   // Controls
@@ -27,7 +27,7 @@ export const en = {
 
   // Settings panel
   'settings.title': 'Settings',
-  'settings.titleSimple': 'Simple Settings',
+  'settings.titleSimple': 'Timer Settings',
   'settings.titleAgenda': 'Agenda Settings',
   'settings.timerSize': 'Timer Size',
   'settings.size.small': 'Small — compact display',

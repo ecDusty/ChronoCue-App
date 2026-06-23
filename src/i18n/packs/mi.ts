@@ -3,7 +3,7 @@ import type { Translations } from '../types'
 // NOTE: te reo Māori translations are best-effort and should be reviewed by a
 // native speaker before release.
 const mi: Translations = {
-  'mode.simple': 'Māmā',
+  'mode.simple': 'Matawā',
   'mode.agenda': 'Rārangi take',
 
   'controls.start': 'Tīmata',
@@ -25,7 +25,7 @@ const mi: Translations = {
   'unit.sec': 'hēk',
 
   'settings.title': 'Tautuhinga',
-  'settings.titleSimple': 'Tautuhinga Māmā',
+  'settings.titleSimple': 'Tautuhinga Matawā',
   'settings.titleAgenda': 'Tautuhinga Rārangi take',
   'settings.timerSize': 'Rahi o te matawā',
   'settings.size.small': 'Iti — whakaatu kōpiri',

@@ -1,7 +1,7 @@
 import type { Translations } from '../types'
 
 const ja: Translations = {
-  'mode.simple': 'シンプル',
+  'mode.simple': 'タイマー',
   'mode.agenda': 'アジェンダ',
 
   'controls.start': '開始',
@@ -23,7 +23,7 @@ const ja: Translations = {
   'unit.sec': '秒',
 
   'settings.title': '設定',
-  'settings.titleSimple': 'シンプルの設定',
+  'settings.titleSimple': 'タイマーの設定',
   'settings.titleAgenda': 'アジェンダの設定',
   'settings.timerSize': 'タイマーのサイズ',
   'settings.size.small': '小 — コンパクト表示',

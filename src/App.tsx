@@ -223,23 +223,23 @@ export function App() {
       <header className="relative z-30 flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-0.5 bg-white/5 rounded-lg p-0.5">
           <button
-            className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${
+            className={`flex items-center gap-1 px-2 py-1 rounded-md text-[15px] font-medium transition-colors ${
               mode === 'simple' ? 'bg-teal-600/30 text-teal-300' : 'text-teal-400/40 hover:text-teal-300/70'
             }`}
             onClick={() => requestModeSwitch('simple')}
             data-testid="button-mode-simple"
           >
-            <Timer size={11} />
+            <Timer size={15} />
             {t('mode.simple')}
           </button>
           <button
-            className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${
+            className={`flex items-center gap-1 px-2 py-1 rounded-md text-[15px] font-medium transition-colors ${
               mode === 'agenda' ? 'bg-teal-600/30 text-teal-300' : 'text-teal-400/40 hover:text-teal-300/70'
             }`}
             onClick={() => requestModeSwitch('agenda')}
             data-testid="button-mode-agenda"
           >
-            <List size={11} />
+            <List size={15} />
             {t('mode.agenda')}
           </button>
         </div>
