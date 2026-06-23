@@ -290,8 +290,8 @@ export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings
           <p className="text-red-400/90 text-xs mb-2" data-testid="import-error">{importError}</p>
         )}
 
-        <div className="flex items-center justify-between gap-3 pt-2 border-t border-white/10">
-          <div className="flex items-center gap-2 min-w-0">
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/10">
+          <div className="flex flex-wrap items-center gap-2 min-w-0">
             <button
               className="touch-button flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors shrink-0"
               onClick={addItem}
@@ -322,7 +322,7 @@ export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings
             )}
           </div>
           <button
-            className="touch-button px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-sm transition-colors shrink-0"
+            className="touch-button ml-auto px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-sm transition-colors shrink-0"
             onClick={save}
             data-testid="button-save-agenda"
           >
