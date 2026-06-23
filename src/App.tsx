@@ -247,11 +247,11 @@ export function App() {
         <div className="flex items-center gap-2">
           {mode === 'agenda' && (
             <button
-              className="flex items-center justify-center w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 text-white/40 transition-colors"
+              className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5 hover:bg-white/15 text-white/40 transition-colors"
               onClick={() => setShowAgendaEditor(true)}
               data-testid="button-edit-agenda"
             >
-              <List size={13} />
+              <List size={20} />
             </button>
           )}
           <div className="mr-8">
