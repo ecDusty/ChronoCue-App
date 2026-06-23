@@ -21,7 +21,7 @@ export const en = {
   'common.on': 'On',
   'common.off': 'Off',
   'common.remove': 'Remove',
-  'unit.h': 'h',
+  'unit.h': 'hr',
   'unit.min': 'min',
   'unit.sec': 's',
 
