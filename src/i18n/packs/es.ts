@@ -61,6 +61,7 @@ const es: Translations = {
   'agenda.importTitle': 'Importar elementos desde una hoja de cálculo (columna A = nombre, B = duración). Reemplaza la lista actual.',
   'agenda.minTotal': '{minutes} min en total',
   'agenda.save': 'Guardar',
+  'agenda.discard': 'Descartar',
   'agenda.showOvertime': 'Mostrar tiempo extra',
   'agenda.fadeBlink': 'Desvanecer / parpadear',
   'agenda.gong': 'Gong',

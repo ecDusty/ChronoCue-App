@@ -61,6 +61,7 @@ const ko: Translations = {
   'agenda.importTitle': '스프레드시트에서 항목 가져오기 (A열=이름, B열=길이). 현재 목록을 대체합니다.',
   'agenda.minTotal': '총 {minutes}분',
   'agenda.save': '저장',
+  'agenda.discard': '되돌리기',
   'agenda.showOvertime': '초과 시간 표시',
   'agenda.fadeBlink': '페이드 / 깜빡임',
   'agenda.gong': '알림음',

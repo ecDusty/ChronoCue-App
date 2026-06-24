@@ -61,6 +61,7 @@ const hi: Translations = {
   'agenda.importTitle': 'स्प्रेडशीट से आइटम आयात करें (कॉलम A = नाम, B = अवधि)। वर्तमान सूची को बदल देता है।',
   'agenda.minTotal': 'कुल {minutes} मिनट',
   'agenda.save': 'सहेजें',
+  'agenda.discard': 'छोड़ें',
   'agenda.showOvertime': 'अतिरिक्त समय दिखाएँ',
   'agenda.fadeBlink': 'फ़ेड / ब्लिंक',
   'agenda.gong': 'घंटी',

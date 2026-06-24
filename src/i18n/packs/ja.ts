@@ -61,6 +61,7 @@ const ja: Translations = {
   'agenda.importTitle': 'スプレッドシートから項目をインポート（A列=名前、B列=長さ）。現在のリストを置き換えます。',
   'agenda.minTotal': '合計 {minutes} 分',
   'agenda.save': '保存',
+  'agenda.discard': '破棄',
   'agenda.showOvertime': '超過時間を表示',
   'agenda.fadeBlink': 'フェード / 点滅',
   'agenda.gong': '通知音',

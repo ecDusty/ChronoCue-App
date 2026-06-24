@@ -61,6 +61,7 @@ const zhCN: Translations = {
   'agenda.importTitle': '从电子表格导入项目（A列=名称，B列=时长）。替换当前列表。',
   'agenda.minTotal': '共 {minutes} 分钟',
   'agenda.save': '保存',
+  'agenda.discard': '放弃',
   'agenda.showOvertime': '显示超时',
   'agenda.fadeBlink': '渐隐 / 闪烁',
   'agenda.gong': '提示音',

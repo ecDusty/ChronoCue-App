@@ -61,6 +61,7 @@ const tl: Translations = {
   'agenda.importTitle': 'Mag-import ng mga item mula sa spreadsheet (column A = pangalan, B = tagal). Papalitan ang kasalukuyang listahan.',
   'agenda.minTotal': '{minutes} min sa kabuuan',
   'agenda.save': 'I-save',
+  'agenda.discard': 'Itapon',
   'agenda.showOvertime': 'Ipakita ang lampas sa oras',
   'agenda.fadeBlink': 'Fade / kumurap',
   'agenda.gong': 'Gong',

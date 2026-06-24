@@ -67,6 +67,7 @@ export const en = {
   'agenda.importTitle': 'Import items from a spreadsheet (column A = name, B = duration). Replaces the current list.',
   'agenda.minTotal': '{minutes} min total',
   'agenda.save': 'Save',
+  'agenda.discard': 'Discard',
   'agenda.showOvertime': 'Show overtime',
   'agenda.fadeBlink': 'Fade / blink',
   'agenda.gong': 'Gong',

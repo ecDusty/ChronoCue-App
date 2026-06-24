@@ -61,6 +61,7 @@ const zhHK: Translations = {
   'agenda.importTitle': '從試算表匯入項目（A欄=名稱，B欄=時長）。取代目前的清單。',
   'agenda.minTotal': '共 {minutes} 分鐘',
   'agenda.save': '儲存',
+  'agenda.discard': '放棄',
   'agenda.showOvertime': '顯示超時',
   'agenda.fadeBlink': '淡出 / 閃爍',
   'agenda.gong': '提示音',

@@ -61,6 +61,7 @@ const ru: Translations = {
   'agenda.importTitle': 'Импортировать пункты из таблицы (столбец A = название, B = длительность). Заменяет текущий список.',
   'agenda.minTotal': 'всего {minutes} мин',
   'agenda.save': 'Сохранить',
+  'agenda.discard': 'Сбросить',
   'agenda.showOvertime': 'Показывать превышение',
   'agenda.fadeBlink': 'Затухание / мигание',
   'agenda.gong': 'Гонг',

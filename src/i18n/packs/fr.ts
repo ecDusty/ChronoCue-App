@@ -61,6 +61,7 @@ const fr: Translations = {
   'agenda.importTitle': 'Importer des éléments depuis un tableur (colonne A = nom, B = durée). Remplace la liste actuelle.',
   'agenda.minTotal': '{minutes} min au total',
   'agenda.save': 'Enregistrer',
+  'agenda.discard': 'Abandonner',
   'agenda.showOvertime': 'Afficher le dépassement',
   'agenda.fadeBlink': 'Fondu / clignotement',
   'agenda.gong': 'Gong',

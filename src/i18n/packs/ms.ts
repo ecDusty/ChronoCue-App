@@ -61,6 +61,7 @@ const ms: Translations = {
   'agenda.importTitle': 'Import item daripada hamparan (lajur A = nama, B = tempoh). Menggantikan senarai semasa.',
   'agenda.minTotal': '{minutes} min jumlah',
   'agenda.save': 'Simpan',
+  'agenda.discard': 'Buang',
   'agenda.showOvertime': 'Tunjukkan masa tambahan',
   'agenda.fadeBlink': 'Pudar / berkelip',
   'agenda.gong': 'Gong',

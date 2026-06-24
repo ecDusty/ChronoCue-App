@@ -1,6 +1,6 @@
 // Small, safe localStorage helpers (used for the selected language and the
 // persisted session). Large media lives in IndexedDB — see utils/idb.ts.
-import type { SessionState } from '../types'
+import type { SessionState, AgendaItem } from '../types'
 
 export function readLocal<T>(key: string, fallback: T): T {
   try {
@@ -37,6 +37,26 @@ export function saveSession(session: SessionState): void {
 export function clearSession(): void {
   try {
     localStorage.removeItem(SESSION_KEY)
+    localStorage.removeItem(AGENDA_DRAFT_KEY)
+  } catch {
+    // ignore
+  }
+}
+
+// --- In-progress agenda draft (auto-saved while the editor is open) ---------
+const AGENDA_DRAFT_KEY = 'chronocue.agendaDraft'
+
+export function loadAgendaDraft(): AgendaItem[] | null {
+  return readLocal<AgendaItem[] | null>(AGENDA_DRAFT_KEY, null)
+}
+
+export function saveAgendaDraft(items: AgendaItem[]): void {
+  writeLocal(AGENDA_DRAFT_KEY, items)
+}
+
+export function clearAgendaDraft(): void {
+  try {
+    localStorage.removeItem(AGENDA_DRAFT_KEY)
   } catch {
     // ignore
   }

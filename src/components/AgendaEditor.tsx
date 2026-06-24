@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { X, ChevronUp, ChevronDown, Trash2, SlidersHorizontal, Settings, FileUp } from 'lucide-react'
 import type { AgendaItem, AgendaItemOverrides, AppSettings, SoundClip } from '../types'
 import { parseSeconds } from '../utils/time'
 import { parseAgendaFile } from '../utils/agendaImport'
+import { loadAgendaDraft, saveAgendaDraft, clearAgendaDraft } from '../utils/storage'
 import { Toggle } from './Toggle'
 import { SoundSelector } from './SoundSelector'
 import { useT } from '../i18n/I18nProvider'
@@ -58,12 +59,16 @@ function OverrideBoolRow({ label, globalValue, value, onChange }: {
 }
 
 export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings, onUpdate, onClose }: Props) {
-  const [draft, setDraft] = useState<AgendaItem[]>(items)
+  // Restore an in-progress draft (auto-saved while editing) over the saved agenda.
+  const [draft, setDraft] = useState<AgendaItem[]>(() => loadAgendaDraft() ?? items)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
   const importRef = useRef<HTMLInputElement>(null)
   const t = useT()
+
+  // Auto-save the working draft so accidental close / refresh never loses work.
+  useEffect(() => { saveAgendaDraft(draft) }, [draft])
 
   const handleImport = async (file: File | null) => {
     if (importRef.current) importRef.current.value = ''
@@ -127,7 +132,15 @@ export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings
 
   const save = () => {
     onUpdate(draft.filter(item => item.name.trim().length > 0 && item.durationSeconds > 0))
+    clearAgendaDraft()
     onClose()
+  }
+
+  // Throw away unsaved changes and revert to the last saved agenda.
+  const discard = () => {
+    clearAgendaDraft()
+    setDraft(items)
+    setExpandedId(null)
   }
 
   const totalSeconds = draft.reduce((sum, item) => sum + item.durationSeconds, 0)
@@ -322,7 +335,14 @@ export function AgendaEditor({ items, settings, sounds, addSound, onOpenSettings
             )}
           </div>
           <button
-            className="touch-button ml-auto px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-sm transition-colors shrink-0"
+            className="touch-button ml-auto px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 font-medium text-sm transition-colors shrink-0"
+            onClick={discard}
+            data-testid="button-discard-agenda"
+          >
+            {t('agenda.discard')}
+          </button>
+          <button
+            className="touch-button px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-sm transition-colors shrink-0"
             onClick={save}
             data-testid="button-save-agenda"
           >

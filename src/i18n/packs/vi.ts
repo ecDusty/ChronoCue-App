@@ -61,6 +61,7 @@ const vi: Translations = {
   'agenda.importTitle': 'Nhập các mục từ bảng tính (cột A = tên, B = thời lượng). Thay thế danh sách hiện tại.',
   'agenda.minTotal': 'tổng {minutes} phút',
   'agenda.save': 'Lưu',
+  'agenda.discard': 'Hủy bỏ',
   'agenda.showOvertime': 'Hiển thị quá giờ',
   'agenda.fadeBlink': 'Mờ dần / nhấp nháy',
   'agenda.gong': 'Âm báo',

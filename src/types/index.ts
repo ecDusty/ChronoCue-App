@@ -65,6 +65,8 @@ export interface SessionState {
   agendaIndex: number
   agendaStarted: boolean
   agendaRemaining: Record<string, number>
+  /** Whether the agenda editor was open at save time (reopened on reload if so). */
+  agendaEditorOpen: boolean
   simpleSettings: AppSettings
   agendaSettings: AppSettings
   simpleTimer: TimerSnapshot

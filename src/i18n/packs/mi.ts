@@ -63,6 +63,7 @@ const mi: Translations = {
   'agenda.importTitle': 'Kawemai take mai i te ripanga (tīwae A = ingoa, B = roa). Ka whakakapi i te rārangi o nāianei.',
   'agenda.minTotal': '{minutes} mēn te katoa',
   'agenda.save': 'Tiaki',
+  'agenda.discard': 'Whakahoki',
   'agenda.showOvertime': 'Whakaatu hipa wā',
   'agenda.fadeBlink': 'Memeha / kimo',
   'agenda.gong': 'Gongi',

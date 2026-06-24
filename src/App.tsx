@@ -50,9 +50,10 @@ export function App() {
   const agendaSettings = useSettings(session?.agendaSettings)
   const soundLib = useSoundLibrary() // hydrated asynchronously from IndexedDB below
 
-  const [mode, setMode] = useState<TimerMode>(session?.mode ?? 'simple')
+  // If the agenda editor was open at refresh, reopen it (and force agenda mode).
+  const [mode, setMode] = useState<TimerMode>(session?.agendaEditorOpen ? 'agenda' : (session?.mode ?? 'simple'))
   const [showSettings, setShowSettings] = useState(false)
-  const [showAgendaEditor, setShowAgendaEditor] = useState(false)
+  const [showAgendaEditor, setShowAgendaEditor] = useState(session?.agendaEditorOpen ?? false)
   const [agendaItems, setAgendaItems] = useState<AgendaItem[]>(session?.agendaItems ?? [])
   const [agendaIndex, setAgendaIndex] = useState(session?.agendaIndex ?? 0)
   const [agendaStarted, setAgendaStarted] = useState(session?.agendaStarted ?? false)
@@ -123,6 +124,7 @@ export function App() {
     agendaIndex,
     agendaStarted,
     agendaRemaining: agendaRemaining.current,
+    agendaEditorOpen: showAgendaEditor,
     simpleSettings: { ...simpleSettings.settings, bgImage: null },
     agendaSettings: { ...agendaSettings.settings, bgImage: null },
     simpleTimer: simpleTimer.snapshot,
@@ -498,9 +500,15 @@ export function App() {
           onOpenSettings={() => setShowSettings(true)}
           onUpdate={items => {
             setAgendaItems(items)
-            setAgendaIndex(0)
-            setAgendaStarted(false)
-            agendaRemaining.current = {}
+            if (agendaStarted && items.length > 0) {
+              // Editing an already-running agenda: keep the run going (don't
+              // reset to the "Start Agenda" state); just clamp the active index.
+              setAgendaIndex(i => Math.min(i, items.length - 1))
+            } else {
+              setAgendaIndex(0)
+              setAgendaStarted(false)
+              agendaRemaining.current = {}
+            }
           }}
           onClose={() => setShowAgendaEditor(false)}
         />

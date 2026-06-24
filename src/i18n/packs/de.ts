@@ -61,6 +61,7 @@ const de: Translations = {
   'agenda.importTitle': 'Einträge aus einer Tabelle importieren (Spalte A = Name, B = Dauer). Ersetzt die aktuelle Liste.',
   'agenda.minTotal': '{minutes} Min gesamt',
   'agenda.save': 'Speichern',
+  'agenda.discard': 'Verwerfen',
   'agenda.showOvertime': 'Überzeit anzeigen',
   'agenda.fadeBlink': 'Überblenden / Blinken',
   'agenda.gong': 'Gong',

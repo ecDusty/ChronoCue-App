@@ -61,6 +61,7 @@ const th: Translations = {
   'agenda.importTitle': 'นำเข้ารายการจากสเปรดชีต (คอลัมน์ A = ชื่อ, B = ระยะเวลา) แทนที่รายการปัจจุบัน',
   'agenda.minTotal': 'รวม {minutes} นาที',
   'agenda.save': 'บันทึก',
+  'agenda.discard': 'ละทิ้ง',
   'agenda.showOvertime': 'แสดงเวลาที่เกิน',
   'agenda.fadeBlink': 'จางหาย / กะพริบ',
   'agenda.gong': 'เสียงแจ้งเตือน',
