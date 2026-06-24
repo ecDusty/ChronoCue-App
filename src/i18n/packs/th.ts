@@ -83,6 +83,11 @@ const th: Translations = {
   'timeInput.min': 'นาที',
   'timeInput.sec': 'วิ',
 
+  'restore.title': 'ทำต่อจากที่ค้างไว้หรือไม่?',
+  'restore.body': 'บันทึกตัวจับเวลาและกำหนดการก่อนหน้าไว้แล้ว',
+  'restore.continue': 'ทำต่อ',
+  'restore.startFresh': 'เริ่มใหม่',
+
   'language.label': 'ภาษา',
 }
 

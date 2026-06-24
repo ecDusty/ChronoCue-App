@@ -83,6 +83,11 @@ const ja: Translations = {
   'timeInput.min': '分',
   'timeInput.sec': '秒',
 
+  'restore.title': '前回の続きから始めますか？',
+  'restore.body': '前回のタイマーとアジェンダを保存しました。',
+  'restore.continue': '続ける',
+  'restore.startFresh': '新しく始める',
+
   'language.label': '言語',
 }
 

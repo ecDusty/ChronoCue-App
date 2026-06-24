@@ -83,6 +83,11 @@ const zhCN: Translations = {
   'timeInput.min': '分',
   'timeInput.sec': '秒',
 
+  'restore.title': '从上次的进度继续？',
+  'restore.body': '已保存你之前的计时器和议程。',
+  'restore.continue': '继续',
+  'restore.startFresh': '重新开始',
+
   'language.label': '语言',
 }
 

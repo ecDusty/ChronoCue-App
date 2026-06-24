@@ -83,6 +83,11 @@ const es: Translations = {
   'timeInput.min': 'Min',
   'timeInput.sec': 'Seg',
 
+  'restore.title': '¿Continuar donde lo dejaste?',
+  'restore.body': 'Se guardó tu temporizador y agenda anteriores.',
+  'restore.continue': 'Continuar',
+  'restore.startFresh': 'Empezar de nuevo',
+
   'language.label': 'Idioma',
 }
 

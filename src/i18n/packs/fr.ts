@@ -83,6 +83,11 @@ const fr: Translations = {
   'timeInput.min': 'Min',
   'timeInput.sec': 'Sec',
 
+  'restore.title': 'Reprendre où vous en étiez ?',
+  'restore.body': 'Votre minuteur et votre agenda précédents ont été enregistrés.',
+  'restore.continue': 'Continuer',
+  'restore.startFresh': 'Recommencer',
+
   'language.label': 'Langue',
 }
 

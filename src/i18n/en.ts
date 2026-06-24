@@ -92,6 +92,12 @@ export const en = {
   'timeInput.min': 'Min',
   'timeInput.sec': 'Sec',
 
+  // Restore-session prompt
+  'restore.title': 'Continue where you left off?',
+  'restore.body': 'Your previous timer and agenda were saved.',
+  'restore.continue': 'Continue',
+  'restore.startFresh': 'Start fresh',
+
   // Language selector
   'language.label': 'Language',
 } as const

@@ -83,6 +83,11 @@ const vi: Translations = {
   'timeInput.min': 'Phút',
   'timeInput.sec': 'Giây',
 
+  'restore.title': 'Tiếp tục từ chỗ bạn đã dừng?',
+  'restore.body': 'Bộ đếm và lịch trình trước đó của bạn đã được lưu.',
+  'restore.continue': 'Tiếp tục',
+  'restore.startFresh': 'Bắt đầu lại',
+
   'language.label': 'Ngôn ngữ',
 }
 

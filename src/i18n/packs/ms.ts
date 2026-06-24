@@ -83,6 +83,11 @@ const ms: Translations = {
   'timeInput.min': 'Min',
   'timeInput.sec': 'Saat',
 
+  'restore.title': 'Sambung di tempat anda berhenti?',
+  'restore.body': 'Pemasa dan agenda anda sebelum ini telah disimpan.',
+  'restore.continue': 'Teruskan',
+  'restore.startFresh': 'Mula semula',
+
   'language.label': 'Bahasa',
 }
 

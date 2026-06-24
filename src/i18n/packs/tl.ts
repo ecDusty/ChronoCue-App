@@ -83,6 +83,11 @@ const tl: Translations = {
   'timeInput.min': 'Min',
   'timeInput.sec': 'Seg',
 
+  'restore.title': 'Ituloy kung saan ka huminto?',
+  'restore.body': 'Na-save ang iyong nakaraang timer at agenda.',
+  'restore.continue': 'Magpatuloy',
+  'restore.startFresh': 'Magsimula muli',
+
   'language.label': 'Wika',
 }
 

@@ -83,6 +83,11 @@ const hi: Translations = {
   'timeInput.min': 'मिनट',
   'timeInput.sec': 'से',
 
+  'restore.title': 'जहाँ छोड़ा था वहीं से जारी रखें?',
+  'restore.body': 'आपका पिछला टाइमर और एजेंडा सहेज लिया गया था।',
+  'restore.continue': 'जारी रखें',
+  'restore.startFresh': 'नए सिरे से शुरू करें',
+
   'language.label': 'भाषा',
 }
 

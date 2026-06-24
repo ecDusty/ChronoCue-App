@@ -13,31 +13,54 @@ import { AgendaEditor } from './components/AgendaEditor'
 import { SettingsPanel } from './components/SettingsPanel'
 import { ModeSwitchModal } from './components/ModeSwitchModal'
 import { LanguageSelector } from './components/LanguageSelector'
+import { RestoreSessionModal } from './components/RestoreSessionModal'
 import { useT } from './i18n/I18nProvider'
+import { loadSession, saveSession, clearSession, SESSION_VERSION } from './utils/storage'
+import { idbGet, idbSet, idbClear } from './utils/idb'
 
-import type { AgendaItem, TimerMode } from './types'
+import type { AgendaItem, TimerMode, SessionState, TimerSnapshot, SoundClip } from './types'
+
+/** A saved session is worth prompting about only if a timer is set/active or an agenda exists. */
+function hasMeaningfulSession(s: SessionState | null | undefined): boolean {
+  if (!s) return false
+  const active = (t: TimerSnapshot) => t.status !== 'idle' || t.remainingMs > 0 || t.targetTs > 0
+  return active(s.simpleTimer) || active(s.agendaTimer) || s.agendaItems.length > 0
+}
+
+/** True if a hydrated snapshot is (or becomes, having run out while away) ended. */
+function isHydratedEnded(t: TimerSnapshot | undefined): boolean {
+  if (!t) return false
+  return t.status === 'ended' || (t.status === 'running' && t.targetTs <= Date.now())
+}
 
 interface SegmentClickState {
   focus: 'h' | 'm' | 's'
 }
 
 export function App() {
-  const simpleTimer = useTimer()
-  const agendaTimer = useTimer()
-  // Simple and Agenda keep fully independent global settings; the sound library is shared.
-  const simpleSettings = useSettings()
-  const agendaSettings = useSettings()
-  const soundLib = useSoundLibrary()
+  // Read the persisted session once, synchronously, to hydrate everything below.
+  const sessionRef = useRef<SessionState | null | undefined>(undefined)
+  if (sessionRef.current === undefined) sessionRef.current = loadSession()
+  const session = sessionRef.current
 
-  const [mode, setMode] = useState<TimerMode>('simple')
+  const simpleTimer = useTimer(session?.simpleTimer)
+  const agendaTimer = useTimer(session?.agendaTimer)
+  // Simple and Agenda keep fully independent global settings; the sound library is shared.
+  const simpleSettings = useSettings(session?.simpleSettings)
+  const agendaSettings = useSettings(session?.agendaSettings)
+  const soundLib = useSoundLibrary() // hydrated asynchronously from IndexedDB below
+
+  const [mode, setMode] = useState<TimerMode>(session?.mode ?? 'simple')
   const [showSettings, setShowSettings] = useState(false)
   const [showAgendaEditor, setShowAgendaEditor] = useState(false)
-  const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([])
-  const [agendaIndex, setAgendaIndex] = useState(0)
-  const [agendaStarted, setAgendaStarted] = useState(false)
+  const [agendaItems, setAgendaItems] = useState<AgendaItem[]>(session?.agendaItems ?? [])
+  const [agendaIndex, setAgendaIndex] = useState(session?.agendaIndex ?? 0)
+  const [agendaStarted, setAgendaStarted] = useState(session?.agendaStarted ?? false)
   const [timeEditorState, setTimeEditorState] = useState<SegmentClickState | null>(null)
   const [pendingMode, setPendingMode] = useState<TimerMode | null>(null)
-  const [suppressSwitchWarning, setSuppressSwitchWarning] = useState(false)
+  const [suppressSwitchWarning, setSuppressSwitchWarning] = useState(session?.suppressSwitchWarning ?? false)
+  const [showRestore, setShowRestore] = useState(() => hasMeaningfulSession(session))
+  const [mediaLoaded, setMediaLoaded] = useState(false)
 
   // Active timer + settings routed to the UI; the other mode keeps its own state.
   const timer = mode === 'simple' ? simpleTimer : agendaTimer
@@ -49,13 +72,14 @@ export function App() {
   // Per-item remaining time (seconds), keyed by item id, so navigating away from
   // an item and back restores its paused progress. `agendaLiveRemaining` mirrors
   // the agenda timer's current remaining for capture at navigation time.
-  const agendaRemaining = useRef<Record<string, number>>({})
+  const agendaRemaining = useRef<Record<string, number>>(session?.agendaRemaining ?? {})
   const agendaLiveRemaining = useRef(0)
   agendaLiveRemaining.current = agendaTimer.remaining
 
   const audioUnlocked = useRef(false)
-  const simpleEndHandled = useRef(false)
-  const agendaEndHandled = useRef(false)
+  // Don't replay the gong on load for a timer that was already ended / ran out while away.
+  const simpleEndHandled = useRef(isHydratedEnded(session?.simpleTimer))
+  const agendaEndHandled = useRef(isHydratedEnded(session?.agendaTimer))
 
   const ensureAudioUnlocked = useCallback(() => {
     if (!audioUnlocked.current) {
@@ -63,6 +87,70 @@ export function App() {
       audioUnlocked.current = true
     }
   }, [])
+
+  // --- Persistence ---------------------------------------------------------
+  // IndexedDB is only ever touched when media (uploaded sounds / background
+  // images) exists. A media-free session never opens or writes IndexedDB.
+  const hasMedia = soundLib.sounds.length > 0 || !!simpleSettings.settings.bgImage || !!agendaSettings.settings.bgImage
+  const mediaTouched = useRef(!!session?.hasMedia)
+
+  // On mount, load media from IndexedDB — but only if the saved session had any.
+  useEffect(() => {
+    if (!session?.hasMedia) { setMediaLoaded(true); return }
+    let cancelled = false
+    Promise.all([
+      idbGet<SoundClip[]>('sounds'),
+      idbGet<string | null>('bg:simple'),
+      idbGet<string | null>('bg:agenda'),
+    ]).then(([sounds, bgSimple, bgAgenda]) => {
+      if (cancelled) return
+      if (sounds && sounds.length) soundLib.replaceSounds(sounds)
+      if (bgSimple) simpleSettings.setBgImageUrl(bgSimple)
+      if (bgAgenda) agendaSettings.setBgImageUrl(bgAgenda)
+      setMediaLoaded(true)
+    })
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Persist lightweight session to localStorage (bgImage stripped — it lives in IDB).
+  const sessionSnapshot: SessionState = {
+    version: SESSION_VERSION,
+    hasMedia,
+    mode,
+    suppressSwitchWarning,
+    agendaItems,
+    agendaIndex,
+    agendaStarted,
+    agendaRemaining: agendaRemaining.current,
+    simpleSettings: { ...simpleSettings.settings, bgImage: null },
+    agendaSettings: { ...agendaSettings.settings, bgImage: null },
+    simpleTimer: simpleTimer.snapshot,
+    agendaTimer: agendaTimer.snapshot,
+  }
+  const sessionJson = JSON.stringify(sessionSnapshot)
+  useEffect(() => {
+    saveSession(JSON.parse(sessionJson) as SessionState)
+  }, [sessionJson])
+
+  // Persist media to IndexedDB only once media has actually existed — and only
+  // after the initial load, so the empty initial state never overwrites it.
+  useEffect(() => {
+    if (!mediaLoaded) return
+    if (!hasMedia && !mediaTouched.current) return // nothing stored, nothing ever uploaded → don't touch IDB
+    mediaTouched.current = true
+    idbSet('sounds', soundLib.sounds)
+    idbSet('bg:simple', simpleSettings.settings.bgImage)
+    idbSet('bg:agenda', agendaSettings.settings.bgImage)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mediaLoaded, hasMedia, soundLib.sounds, simpleSettings.settings.bgImage, agendaSettings.settings.bgImage])
+
+  const startFresh = useCallback(async () => {
+    clearSession()
+    await idbClear()
+    window.location.reload()
+  }, [])
+  // -------------------------------------------------------------------------
 
   // Effective settings for the visible timer: the active agenda item's overrides
   // (if any) merged over the globals. Simple mode always uses the globals.
@@ -187,6 +275,7 @@ export function App() {
       '[data-testid="time-picker"]',
       '[data-testid="mode-switch-modal"]',
       '[data-testid="language-selector"]',
+      '[data-testid="restore-session-modal"]',
     ]
     if (interactive.some(sel => target.closest(sel))) return
 
@@ -446,6 +535,13 @@ export function App() {
             if (dontShowAgain) setSuppressSwitchWarning(true)
             performSwitch(pendingMode)
           }}
+        />
+      )}
+
+      {showRestore && (
+        <RestoreSessionModal
+          onContinue={() => setShowRestore(false)}
+          onStartFresh={startFresh}
         />
       )}
     </div>

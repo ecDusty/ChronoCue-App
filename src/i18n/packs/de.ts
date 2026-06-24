@@ -83,6 +83,11 @@ const de: Translations = {
   'timeInput.min': 'Min',
   'timeInput.sec': 'Sek',
 
+  'restore.title': 'Dort weitermachen, wo du aufgehört hast?',
+  'restore.body': 'Dein vorheriger Timer und deine Agenda wurden gespeichert.',
+  'restore.continue': 'Fortfahren',
+  'restore.startFresh': 'Neu beginnen',
+
   'language.label': 'Sprache',
 }
 

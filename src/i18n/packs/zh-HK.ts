@@ -83,6 +83,11 @@ const zhHK: Translations = {
   'timeInput.min': '分',
   'timeInput.sec': '秒',
 
+  'restore.title': '從上次的進度繼續？',
+  'restore.body': '已儲存你之前的計時器和議程。',
+  'restore.continue': '繼續',
+  'restore.startFresh': '重新開始',
+
   'language.label': '語言',
 }
 

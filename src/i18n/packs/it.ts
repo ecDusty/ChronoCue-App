@@ -83,6 +83,11 @@ const it: Translations = {
   'timeInput.min': 'Min',
   'timeInput.sec': 'Sec',
 
+  'restore.title': 'Riprendere da dove avevi lasciato?',
+  'restore.body': "Il timer e l'agenda precedenti sono stati salvati.",
+  'restore.continue': 'Continua',
+  'restore.startFresh': 'Ricomincia',
+
   'language.label': 'Lingua',
 }
 

@@ -85,6 +85,11 @@ const mi: Translations = {
   'timeInput.min': 'Mēn',
   'timeInput.sec': 'Hēk',
 
+  'restore.title': 'Kia haere tonu mai i tō wāhi i mutu ai?',
+  'restore.body': 'Kua tiakina tō matawā me tō rārangi take o mua.',
+  'restore.continue': 'Haere tonu',
+  'restore.startFresh': 'Tīmata anō',
+
   'language.label': 'Reo',
 }
 

@@ -36,14 +36,20 @@ export interface UseSettingsReturn {
   settings: AppSettings
   updateSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => void
   setBgImage: (file: File | null) => void
+  /** Apply a background image already encoded as a data URL (e.g. loaded from IndexedDB). */
+  setBgImageUrl: (url: string | null) => void
 }
 
 /** Independent settings instance. Call once per mode (Simple / Agenda) for separate state. */
-export function useSettings(): UseSettingsReturn {
-  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS)
+export function useSettings(init?: AppSettings): UseSettingsReturn {
+  const [settings, setSettings] = useState<AppSettings>(init ?? DEFAULT_SETTINGS)
 
   const updateSetting = useCallback(<K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }))
+  }, [])
+
+  const setBgImageUrl = useCallback((url: string | null) => {
+    setSettings(prev => ({ ...prev, bgImage: url }))
   }, [])
 
   const setBgImage = useCallback((file: File | null) => {
@@ -59,7 +65,7 @@ export function useSettings(): UseSettingsReturn {
     reader.readAsDataURL(file)
   }, [])
 
-  return { settings, updateSetting, setBgImage }
+  return { settings, updateSetting, setBgImage, setBgImageUrl }
 }
 
 export interface SoundLibrary {
@@ -67,11 +73,13 @@ export interface SoundLibrary {
   /** Reads the file into a SoundClip and appends it; `onAdded` receives the new id. */
   addSound: (file: File, onAdded?: (id: string) => void) => void
   removeSound: (id: string) => void
+  /** Replace the whole library (e.g. when hydrating from IndexedDB). */
+  replaceSounds: (clips: SoundClip[]) => void
 }
 
 /** Shared, mode-agnostic library of uploaded sounds reusable everywhere. */
-export function useSoundLibrary(): SoundLibrary {
-  const [sounds, setSounds] = useState<SoundClip[]>([])
+export function useSoundLibrary(init?: SoundClip[]): SoundLibrary {
+  const [sounds, setSounds] = useState<SoundClip[]>(init ?? [])
 
   const addSound = useCallback((file: File, onAdded?: (id: string) => void) => {
     const reader = new FileReader()
@@ -88,5 +96,9 @@ export function useSoundLibrary(): SoundLibrary {
     setSounds(prev => prev.filter(s => s.id !== id))
   }, [])
 
-  return { sounds, addSound, removeSound }
+  const replaceSounds = useCallback((clips: SoundClip[]) => {
+    setSounds(clips)
+  }, [])
+
+  return { sounds, addSound, removeSound, replaceSounds }
 }

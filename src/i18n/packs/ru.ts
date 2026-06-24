@@ -83,6 +83,11 @@ const ru: Translations = {
   'timeInput.min': 'Мин',
   'timeInput.sec': 'Сек',
 
+  'restore.title': 'Продолжить с того места, где вы остановились?',
+  'restore.body': 'Ваш предыдущий таймер и повестка сохранены.',
+  'restore.continue': 'Продолжить',
+  'restore.startFresh': 'Начать заново',
+
   'language.label': 'Язык',
 }
 

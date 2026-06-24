@@ -83,6 +83,11 @@ const ko: Translations = {
   'timeInput.min': '분',
   'timeInput.sec': '초',
 
+  'restore.title': '이어서 계속할까요?',
+  'restore.body': '이전 타이머와 어젠다가 저장되었습니다.',
+  'restore.continue': '계속',
+  'restore.startFresh': '새로 시작',
+
   'language.label': '언어',
 }
 

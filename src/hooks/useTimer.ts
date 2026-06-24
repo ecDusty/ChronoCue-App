@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { TimerStatus } from '../types'
+import type { TimerStatus, TimerSnapshot } from '../types'
 
 export interface UseTimerReturn {
   remaining: number
@@ -13,19 +13,50 @@ export interface UseTimerReturn {
   setTimeAndStart: (seconds: number) => void
   addTime: (seconds: number) => void
   overtimeSeconds: number
+  /** Serializable, tick-stable snapshot for persistence. */
+  snapshot: TimerSnapshot
 }
 
-export function useTimer(): UseTimerReturn {
-  const [totalSeconds, setTotalSeconds] = useState(0)
-  const [remainingMs, setRemainingMs] = useState(0)
-  const [status, setStatus] = useState<TimerStatus>('idle')
-  const [overtimeSeconds, setOvertimeSeconds] = useState(0)
+interface Hydrated {
+  status: TimerStatus
+  remainingMs: number
+  overtimeSeconds: number
+  targetTs: number
+  overtimeStartTs: number
+}
+
+/** Resolve persisted state into live state at load (running keeps counting). */
+function hydrate(init?: TimerSnapshot): Hydrated {
+  if (!init) return { status: 'idle', remainingMs: 0, overtimeSeconds: 0, targetTs: 0, overtimeStartTs: 0 }
+  const now = Date.now()
+  if (init.status === 'running') {
+    const remMs = init.targetTs - now
+    if (remMs > 0) return { status: 'running', remainingMs: remMs, overtimeSeconds: 0, targetTs: init.targetTs, overtimeStartTs: 0 }
+    // It would have hit zero while the page was closed → come back in overtime.
+    return { status: 'ended', remainingMs: 0, overtimeSeconds: Math.max(0, Math.floor((now - init.targetTs) / 1000)), targetTs: init.targetTs, overtimeStartTs: init.targetTs }
+  }
+  if (init.status === 'ended') {
+    const ost = init.overtimeStartTs || 0
+    return { status: 'ended', remainingMs: 0, overtimeSeconds: ost ? Math.max(0, Math.floor((now - ost) / 1000)) : 0, targetTs: 0, overtimeStartTs: ost }
+  }
+  return { status: init.status, remainingMs: Math.max(0, init.remainingMs), overtimeSeconds: 0, targetTs: 0, overtimeStartTs: 0 }
+}
+
+export function useTimer(init?: TimerSnapshot): UseTimerReturn {
+  const hydratedRef = useRef<Hydrated | null>(null)
+  if (hydratedRef.current === null) hydratedRef.current = hydrate(init)
+  const h = hydratedRef.current
+
+  const [totalSeconds, setTotalSeconds] = useState(init?.totalSeconds ?? 0)
+  const [remainingMs, setRemainingMs] = useState(h.remainingMs)
+  const [status, setStatus] = useState<TimerStatus>(h.status)
+  const [overtimeSeconds, setOvertimeSeconds] = useState(h.overtimeSeconds)
 
   const mainInterval = useRef<ReturnType<typeof window.setInterval> | null>(null)
   const overtimeInterval = useRef<ReturnType<typeof window.setInterval> | null>(null)
-  const targetTs = useRef(0)
-  const overtimeStartTs = useRef(0)
-  const initialSecondsRef = useRef(0)
+  const targetTs = useRef(h.targetTs)
+  const overtimeStartTs = useRef(h.overtimeStartTs)
+  const initialSecondsRef = useRef(init?.initialSeconds ?? 0)
 
   const remaining = Math.ceil(remainingMs / 1000)
 
@@ -130,7 +161,27 @@ export function useTimer(): UseTimerReturn {
     setTotalSeconds(prev => Math.max(0, prev + seconds))
   }, [status])
 
+  // On mount, resume intervals for a hydrated running/ended timer.
+  useEffect(() => {
+    if (h.status === 'running') {
+      mainInterval.current = window.setInterval(tick, 200)
+      tick()
+    } else if (h.status === 'ended') {
+      startOvertimeInterval()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   useEffect(() => () => { clearMain(); clearOvertime() }, [clearMain, clearOvertime])
 
-  return { remaining, totalSeconds, status, start, pause, reset, setTime, setTimeAndStart, addTime, overtimeSeconds }
+  const snapshot: TimerSnapshot = {
+    status,
+    totalSeconds,
+    initialSeconds: initialSecondsRef.current,
+    remainingMs: status === 'running' || status === 'ended' ? 0 : remainingMs,
+    targetTs: status === 'running' ? targetTs.current : 0,
+    overtimeStartTs: status === 'ended' ? overtimeStartTs.current : 0,
+  }
+
+  return { remaining, totalSeconds, status, start, pause, reset, setTime, setTimeAndStart, addTime, overtimeSeconds, snapshot }
 }
